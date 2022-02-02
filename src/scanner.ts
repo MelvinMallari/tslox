@@ -1,5 +1,6 @@
 import Token from "./token";
 import TokenType from "./tokenType";
+import { error } from "./error";
 
 export default class Scanner {
   private source: string;
@@ -59,14 +60,114 @@ export default class Scanner {
       case "*":
         this.addToken(TokenType.STAR);
         break;
+      case "!":
+        this.addToken(this.match("=") ? TokenType.BANG_EQUAL : TokenType.BANG);
+        break;
+      case "=":
+        this.addToken(
+          this.match("=") ? TokenType.EQUAL_EQUAL : TokenType.EQUAL
+        );
+        break;
+      case "<":
+        this.addToken(this.match("=") ? TokenType.LESS_EQUAL : TokenType.LESS);
+        break;
+      case ">":
+        this.addToken(
+          this.match("=") ? TokenType.GREATER_EQUAL : TokenType.GREATER
+        );
+        break;
+      case "/":
+        if (this.match("/")) {
+          // use peek instead of match so we update line counter in the new line case
+          while (this.peek() !== "\n" && !this.isAtEnd()) this.advance();
+        } else {
+          this.addToken(TokenType.SLASH);
+        }
+        break;
+
+      case " ":
+      case "\r":
+      case "\t":
+        // ignore whitespace.
+        break;
+
+      case "\n":
+        this.line++;
+        break;
+
+      case '"':
+        this.string();
+        break;
 
       default:
+        if (this.isDigit(char)) {
+          this.number();
+        } else {
+          error(this.line, "Unexpected character.");
+        }
         break;
     }
   }
 
   private advance(): string {
     return this.source.charAt(this.current++);
+  }
+
+  private peek(): string {
+    if (this.isAtEnd()) return "\0";
+    return this.source.charAt(this.current);
+  }
+
+  private peekNext(): string {
+    if (this.current + 1 >= this.source.length) return "\0";
+    return this.source.charAt(this.current + 1);
+  }
+
+  private match(expected: string): boolean {
+    if (this.isAtEnd()) return false;
+    if (this.source.charAt(this.current) !== expected) return false;
+    this.current++;
+    return true;
+  }
+
+  private string(): void {
+    while (this.peek() != '"' && !this.isAtEnd()) {
+      if (this.peek() == "\n") this.line++;
+      this.advance();
+
+      if (this.isAtEnd()) {
+        error(this.line, "Unterminated string.");
+        return;
+      }
+
+      // advance past the closing "
+      this.advance();
+
+      // trim the surrounding quotes
+      const value = this.source.substring(this.start + 1, this.current - 1);
+      this.addTokenWithLiteral(TokenType.STRING, value);
+    }
+  }
+
+  private number(): void {
+    while (this.isDigit(this.peek())) this.advance();
+
+    // handle the decimal point
+    if (this.peek() == "." && this.isDigit(this.peekNext())) {
+      // consume the decimal point
+      this.advance();
+      // keep scanning the number
+      while (this.isDigit(this.peek())) this.advance();
+    }
+
+    this.addTokenWithLiteral(
+      TokenType.NUMBER,
+      parseFloat(this.source.substring(this.start, this.current))
+    );
+  }
+
+  private isDigit(c: string): boolean {
+    return c >= "0" && c <= "9";
   }
 
   private addToken(type: TokenType): void {
