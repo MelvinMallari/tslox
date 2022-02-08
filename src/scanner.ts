@@ -156,19 +156,19 @@ export default class Scanner {
     while (this.peek() != '"' && !this.isAtEnd()) {
       if (this.peek() == "\n") this.line++;
       this.advance();
-
-      if (this.isAtEnd()) {
-        error(this.line, "Unterminated string.");
-        return;
-      }
-
-      // advance past the closing "
-      this.advance();
-
-      // trim the surrounding quotes
-      const value = this.source.substring(this.start + 1, this.current - 1);
-      this.addTokenWithLiteral(TokenType.STRING, value);
     }
+
+    if (this.isAtEnd()) {
+      error(this.line, "Unterminated string.");
+      return;
+    }
+
+    // advance past the closing "
+    this.advance();
+
+    // trim the surrounding quotes
+    const value = this.source.substring(this.start + 1, this.current - 1);
+    this.addTokenWithLiteral(TokenType.STRING, value);
   }
 
   private number(): void {

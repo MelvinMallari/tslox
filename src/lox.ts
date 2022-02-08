@@ -1,4 +1,6 @@
 import { readFileSync } from "fs";
+import Scanner from "./scanner";
+import { setHadError } from "./error";
 import * as readline from "readline";
 
 const main = (): void => {
@@ -23,21 +25,25 @@ const runPrompt = (): void => {
     output: process.stdout,
     prompt: "[lox]>",
   });
+  rl.prompt();
 
   rl.on("line", (line) => {
     line = line.trim();
     if (line === "exit") {
-      console.log("exiting");
       rl.close();
       rl.removeAllListeners();
       process.exit(64);
     }
+    setHadError(false);
+    run(line);
     rl.prompt();
   });
 };
 
 const run = (src: string): void => {
-  console.log(src);
+  const scanner = new Scanner(src);
+  const tokens = scanner.scanTokens();
+  console.log({ tokens });
 };
 
 // only run in command line
