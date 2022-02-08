@@ -8,6 +8,26 @@ export default class Scanner {
   private start: number = 0;
   private current: number = 0;
   private line: number = 1;
+  private keywords: Map<string, TokenType> = new Map(
+    Object.entries({
+      and: TokenType.AND,
+      class: TokenType.CLASS,
+      else: TokenType.ELSE,
+      false: TokenType.FALSE,
+      for: TokenType.FOR,
+      fun: TokenType.FUN,
+      if: TokenType.IF,
+      nil: TokenType.NIL,
+      or: TokenType.OR,
+      print: TokenType.PRINT,
+      return: TokenType.RETURN,
+      super: TokenType.SUPER,
+      this: TokenType.THIS,
+      true: TokenType.TRUE,
+      var: TokenType.VAR,
+      while: TokenType.WHILE,
+    })
+  );
 
   constructor(source: string) {
     this.source = source;
@@ -102,6 +122,8 @@ export default class Scanner {
       default:
         if (this.isDigit(char)) {
           this.number();
+        } else if (this.isAlpha(char)) {
+          this.identifier();
         } else {
           error(this.line, "Unexpected character.");
         }
@@ -164,6 +186,23 @@ export default class Scanner {
       TokenType.NUMBER,
       parseFloat(this.source.substring(this.start, this.current))
     );
+  }
+
+  private identifier(): void {
+    while (this.isAlphaNumeric(this.peek())) this.advance();
+    // check if the type is a reserved keyword (essentially an identifier claimed by the language)
+    const text = this.source.substring(this.start, this.current);
+    let type = this.keywords.get(text);
+    if (type == null) type = TokenType.IDENTIFIER;
+    this.addToken(type);
+  }
+
+  private isAlpha(c: string): boolean {
+    return (c >= "a" && c <= "z") || (c >= "A" && c <= "Z") || c == "_";
+  }
+
+  private isAlphaNumeric(c: string): boolean {
+    return this.isAlpha(c) || this.isDigit(c);
   }
 
   private isDigit(c: string): boolean {
