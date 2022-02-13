@@ -71,9 +71,9 @@ export class AstPrinter implements ExprVisitor<string> {
     let res = "(";
 
     res += `${name}`;
-    exprs.forEach((expr) => {
+    for (const expr of exprs) {
       res += ` ${expr.accept(this)}`;
-    });
+    }
     res += ")";
 
     return res;
