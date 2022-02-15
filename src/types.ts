@@ -1,1 +1,1 @@
-export type LiteralType = string | number | boolean | null;
+export type LiteralType = string | number | boolean | null | Object;
