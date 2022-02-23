@@ -1,7 +1,17 @@
 import { readFileSync } from "fs";
 import Scanner from "./scanner";
-import { setHadError } from "./error";
+import { setHadError, report } from "./error";
 import * as readline from "readline";
+import Token from "./token";
+import TokenType from "./tokenType";
+
+export const error = (token: Token, message: string) => {
+  if (token.type === TokenType.EOF) {
+    report(token.line, "at end", message);
+  } else {
+    report(token.line, `at '${token.lexeme}'`, message);
+  }
+};
 
 const main = (): void => {
   const args = process.argv.slice(2);

@@ -1,6 +1,8 @@
 import Token from "./token";
 import TokenType from "./tokenType";
 import { BinaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr } from "./ast";
+import { ParseError } from "./error";
+import { error as loxError } from "./lox";
 
 export class Parser {
   private readonly tokens: Token[];
@@ -98,6 +100,13 @@ export class Parser {
     }
   }
 
+  private error(token: Token, message: string): ParseError {
+    loxError(token, message);
+    return token.type === TokenType.EOF
+      ? new ParseError(message, token.line, "at end")
+      : new ParseError(message, token.line, `at '${token.lexeme}'`);
+  }
+
   // checks if current token matches any in input array of types
   private match(...types: TokenType[]): boolean {
     for (const type of types) {
@@ -107,6 +116,11 @@ export class Parser {
       }
     }
     return false;
+  }
+
+  private consume(type: TokenType, message: string): Token {
+    if (this.check(type)) return this.advance();
+    throw this.error(this.peek(), message);
   }
 
   private check(type: TokenType): boolean {
