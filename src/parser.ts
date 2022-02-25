@@ -60,7 +60,7 @@ export class Parser {
 
   // term → factor ( ( "-" | "+" ) factor )* ;
   private term(): Expr {
-    let expr = this.term();
+    let expr = this.factor();
     while (this.match(TokenType.MINUS, TokenType.PLUS)) {
       const operator = this.previous();
       const right = this.term();
@@ -81,7 +81,6 @@ export class Parser {
   }
 
   // unary → ( "!" | "-" ) unary | primary ;
-
   private unary(): Expr {
     if (this.match(TokenType.BANG, TokenType.MINUS)) {
       const operator = this.previous();

@@ -1,9 +1,11 @@
 import { readFileSync } from "fs";
 import Scanner from "./scanner";
-import { setHadError, report } from "./error";
+import { setHadError, report, getHadError } from "./error";
 import * as readline from "readline";
 import Token from "./token";
 import TokenType from "./tokenType";
+import { Parser } from "./parser";
+import { AstPrinter } from "./ast";
 
 export const error = (token: Token, message: string) => {
   if (token.type === TokenType.EOF) {
@@ -53,7 +55,20 @@ const runPrompt = (): void => {
 const run = (src: string): void => {
   const scanner = new Scanner(src);
   const tokens = scanner.scanTokens();
-  console.log({ tokens });
+  const parser = new Parser(tokens);
+  const expression = parser.parse();
+
+  // stop of there was a syntax error
+  if (getHadError()) {
+    console.log("had error");
+    return;
+  }
+  if (!expression) {
+    console.log("no expression");
+    return;
+  }
+
+  console.log(new AstPrinter().print(expression));
 };
 
 // only run in command line
