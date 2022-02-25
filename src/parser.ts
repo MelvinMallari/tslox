@@ -12,6 +12,14 @@ export class Parser {
     this.tokens = tokens;
   }
 
+  parse(): Expr | null {
+    try {
+      return this.expression();
+    } catch (error) {
+      return null;
+    }
+  }
+
   // expression → equality ;
   private expression(): Expr {
     return this.equality();
@@ -98,6 +106,9 @@ export class Parser {
       this.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
       return new GroupingExpr(expr);
     }
+
+    // handle the case in which we have a token that cannot start an expression
+    throw this.error(this.peek(), "Expect expression");
   }
 
   private error(token: Token, message: string): ParseError {
@@ -105,6 +116,30 @@ export class Parser {
     return token.type === TokenType.EOF
       ? new ParseError(message, token.line, "at end")
       : new ParseError(message, token.line, `at '${token.lexeme}'`);
+  }
+
+  // discard tokens until we're right at the beginning of the next statement
+  // this best effort & isn't perfect (e.g. colons in for loops)
+  private synchronize(): void {
+    this.advance();
+
+    while (!this.isAtEnd()) {
+      if (this.previous().type == TokenType.SEMICOLON) return;
+
+      switch (this.peek().type) {
+        case TokenType.CLASS:
+        case TokenType.FUN:
+        case TokenType.VAR:
+        case TokenType.FOR:
+        case TokenType.IF:
+        case TokenType.WHILE:
+        case TokenType.PRINT:
+        case TokenType.RETURN:
+          return;
+      }
+
+      this.advance();
+    }
   }
 
   // checks if current token matches any in input array of types
