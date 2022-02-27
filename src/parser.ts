@@ -4,6 +4,10 @@ import { BinaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr } from "./ast";
 import { ParseError } from "./error";
 import { error as loxError } from "./lox";
 
+let a: Object;
+a = "test";
+console.log(a);
+
 export class Parser {
   private readonly tokens: Token[];
   private current: number = 0;
