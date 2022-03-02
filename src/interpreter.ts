@@ -44,6 +44,16 @@ export class Interpreter implements ExprVisitor<LoxObject> {
     const right = this.evaluate(expr.right);
 
     switch (expr.operator.type) {
+      case TokenType.GREATER:
+        return Number(left) > Number(right);
+      case TokenType.GREATER_EQUAL:
+        return Number(left) >= Number(right);
+      case TokenType.LESS:
+        return Number(left) < Number(right);
+      case TokenType.LESS_EQUAL:
+        return Number(left) <= Number(right);
+      case TokenType.GREATER:
+        return Number(left) > Number(right);
       case TokenType.MINUS:
         return Number(left) - Number(right);
       // can be used to add numbers & concantenate strings
@@ -59,9 +69,19 @@ export class Interpreter implements ExprVisitor<LoxObject> {
         return Number(left) / Number(right);
       case TokenType.STAR:
         return Number(left) * Number(right);
+      case TokenType.BANG_EQUAL:
+        return this.equal(left, right);
+      case TokenType.EQUAL_EQUAL:
+        return this.equal(left, right);
     }
 
     return null;
+  }
+
+  private equal(a: LoxObject, b: LoxObject) {
+    if (a === null && b === null) return true;
+    if (a === null) return false;
+    return a === b;
   }
 
   private evaluate(expr: Expr): LoxObject {
