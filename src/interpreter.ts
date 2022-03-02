@@ -8,6 +8,8 @@ import {
 } from "./ast";
 import { LoxObject } from "./types";
 import TokenType from "./tokenType";
+import Token from "./token";
+import { RuntimeError } from "./error";
 
 // Object is the implementation language type we use to hold Lox values
 export class Interpreter implements ExprVisitor<LoxObject> {
@@ -45,16 +47,22 @@ export class Interpreter implements ExprVisitor<LoxObject> {
 
     switch (expr.operator.type) {
       case TokenType.GREATER:
+        this.checkNumberOperands(expr.operator, left, right);
         return Number(left) > Number(right);
       case TokenType.GREATER_EQUAL:
+        this.checkNumberOperands(expr.operator, left, right);
         return Number(left) >= Number(right);
       case TokenType.LESS:
+        this.checkNumberOperands(expr.operator, left, right);
         return Number(left) < Number(right);
       case TokenType.LESS_EQUAL:
+        this.checkNumberOperands(expr.operator, left, right);
         return Number(left) <= Number(right);
       case TokenType.GREATER:
+        this.checkNumberOperands(expr.operator, left, right);
         return Number(left) > Number(right);
       case TokenType.MINUS:
+        this.checkNumberOperand(expr.operator, right);
         return Number(left) - Number(right);
       // can be used to add numbers & concantenate strings
       case TokenType.PLUS:
@@ -64,10 +72,15 @@ export class Interpreter implements ExprVisitor<LoxObject> {
         if (typeof left === "string" && typeof right === "string") {
           return String(left) + String(right);
         }
-        break;
+        throw new RuntimeError(
+          expr.operator,
+          "Operands must be two numbers or two strings."
+        );
       case TokenType.SLASH:
+        this.checkNumberOperands(expr.operator, left, right);
         return Number(left) / Number(right);
       case TokenType.STAR:
+        this.checkNumberOperands(expr.operator, left, right);
         return Number(left) * Number(right);
       case TokenType.BANG_EQUAL:
         return this.equal(left, right);
@@ -76,6 +89,20 @@ export class Interpreter implements ExprVisitor<LoxObject> {
     }
 
     return null;
+  }
+
+  private checkNumberOperand(operator: Token, operand: LoxObject) {
+    if (typeof operand === "number") return;
+    throw new RuntimeError(operator, "Operator must be a number.");
+  }
+
+  private checkNumberOperands(
+    operator: Token,
+    left: LoxObject,
+    right: LoxObject
+  ) {
+    if (typeof left === "number" && typeof right === "number") return;
+    throw new RuntimeError(operator, "Operator must be a number.");
   }
 
   private equal(a: LoxObject, b: LoxObject) {

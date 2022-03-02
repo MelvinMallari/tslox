@@ -1,3 +1,5 @@
+import Token from "./token";
+
 let hadError = false;
 
 export class ParseError extends Error {
@@ -10,6 +12,16 @@ export class ParseError extends Error {
     this.message = message;
     this.line = line;
     this.where = where;
+  }
+}
+
+export class RuntimeError extends Error {
+  readonly token: Token;
+
+  constructor(token: Token, message: string) {
+    super(message);
+    this.token = token;
+    this.message = message;
   }
 }
 
