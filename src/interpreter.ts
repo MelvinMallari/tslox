@@ -6,6 +6,7 @@ import {
   UnaryExpr,
   BinaryExpr,
 } from "./ast";
+import { runtimeError } from "./lox";
 import { LoxObject } from "./types";
 import TokenType from "./tokenType";
 import Token from "./token";
@@ -13,6 +14,15 @@ import { RuntimeError } from "./error";
 
 // Object is the implementation language type we use to hold Lox values
 export class Interpreter implements ExprVisitor<LoxObject> {
+  interpret(expression: Expr): void {
+    try {
+      const value: LoxObject = this.evaluate(expression);
+      console.log(this.stringify(value));
+    } catch (error) {
+      runtimeError(error as RuntimeError);
+    }
+  }
+
   public visitLiteralExpr(expr: LiteralExpr): LoxObject {
     return expr.value;
   }
@@ -83,9 +93,9 @@ export class Interpreter implements ExprVisitor<LoxObject> {
         this.checkNumberOperands(expr.operator, left, right);
         return Number(left) * Number(right);
       case TokenType.BANG_EQUAL:
-        return this.equal(left, right);
+        return this.isEqual(left, right);
       case TokenType.EQUAL_EQUAL:
-        return this.equal(left, right);
+        return this.isEqual(left, right);
     }
 
     return null;
@@ -105,13 +115,23 @@ export class Interpreter implements ExprVisitor<LoxObject> {
     throw new RuntimeError(operator, "Operator must be a number.");
   }
 
-  private equal(a: LoxObject, b: LoxObject) {
+  private isEqual(a: LoxObject, b: LoxObject) {
     if (a === null && b === null) return true;
     if (a === null) return false;
     return a === b;
   }
 
-  private evaluate(expr: Expr): LoxObject {
+  private stringify(object: LoxObject): string {
+    if (object === null) return "nil";
+    if (typeof object === "number") {
+      let text = object.toString();
+      if (text.endsWith(".0")) text = text.substring(0, text.length - 2);
+      return text;
+    }
+    return object.toString();
+  }
+
+  private evaluate(expr: Expr): LoxObject | RuntimeError {
     return expr.accept(this);
   }
 }

@@ -1,6 +1,7 @@
 import Token from "./token";
 
 let hadError = false;
+let hadRunTimeError = false;
 
 export class ParseError extends Error {
   name = "ParseError";
@@ -39,3 +40,9 @@ export const setHadError = (error: boolean): void => {
 };
 
 export const getHadError = (): boolean => hadError;
+
+export const setHadRuntimeError = (error: boolean): void => {
+  hadRunTimeError = error;
+};
+
+export const getHadRuntimeError = (): boolean => hadRunTimeError;
