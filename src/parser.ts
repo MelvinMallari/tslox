@@ -1,12 +1,17 @@
 import Token from "./token";
 import TokenType from "./tokenType";
-import { BinaryExpr, Expr, GroupingExpr, LiteralExpr, UnaryExpr } from "./ast";
+import {
+  BinaryExpr,
+  Expr,
+  GroupingExpr,
+  LiteralExpr,
+  UnaryExpr,
+  Stmt,
+  PrintStmt,
+  ExpressionStmt,
+} from "./ast";
 import { ParseError } from "./error";
 import { error as loxError } from "./lox";
-
-let a: Object;
-a = "test";
-console.log(a);
 
 export class Parser {
   private readonly tokens: Token[];
@@ -16,12 +21,12 @@ export class Parser {
     this.tokens = tokens;
   }
 
-  parse(): Expr | null {
-    try {
-      return this.expression();
-    } catch (error) {
-      return null;
+  parse(): Stmt[] {
+    const statements: Stmt[] = [];
+    while (!this.isAtEnd()) {
+      statements.push(this.statement());
     }
+    return statements;
   }
 
   // expression → equality ;
@@ -112,6 +117,23 @@ export class Parser {
 
     // handle the case in which we have a token that cannot start an expression
     throw this.error(this.peek(), "Expect expression");
+  }
+
+  private statement(): Stmt {
+    if (this.match(TokenType.PRINT)) return this.printStatement();
+    return this.expressionStmt();
+  }
+
+  private printStatement(): Stmt {
+    const value = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
+    return new PrintStmt(value);
+  }
+
+  private expressionStmt(): Stmt {
+    const expr = this.expression();
+    this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+    return new ExpressionStmt(expr);
   }
 
   private error(token: Token, message: string): ParseError {

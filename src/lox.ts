@@ -68,7 +68,7 @@ const run = (src: string): void => {
   const scanner = new Scanner(src);
   const tokens = scanner.scanTokens();
   const parser = new Parser(tokens);
-  const expression = parser.parse();
+  const statements = parser.parse();
   const interpreter = new Interpreter();
 
   // stop if there was a syntax error
@@ -77,12 +77,7 @@ const run = (src: string): void => {
     process.exit(65);
   }
 
-  if (!expression) {
-    console.log("no expression");
-    process.exit(65);
-  }
-
-  interpreter.interpret(expression);
+  interpreter.interpret(statements);
   // stop if runtime error
   if (getHadRuntimeError()) {
     console.log("had runtime error");

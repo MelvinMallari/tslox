@@ -12,6 +12,15 @@ export interface ExprVisitor<T> {
   visitUnaryExpr(expr: UnaryExpr): T;
 }
 
+export interface Stmt {
+  accept<T>(visitor: StmtVisitor<T>): T;
+}
+
+export interface StmtVisitor<T> {
+  visitExpressionStmt(stmt: ExpressionStmt): T;
+  visitPrintStmt(stmt: PrintStmt): T;
+}
+
 export class BinaryExpr implements Expr {
   readonly left: Expr;
   readonly operator: Token;
@@ -63,6 +72,30 @@ export class UnaryExpr implements Expr {
 
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitUnaryExpr(this);
+  }
+}
+
+export class ExpressionStmt implements Stmt {
+  readonly expression: Expr;
+
+  constructor(expression: Expr) {
+    this.expression = expression;
+  }
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitExpressionStmt(this);
+  }
+}
+
+export class PrintStmt implements Stmt {
+  readonly expression: Expr;
+
+  constructor(expression: Expr) {
+    this.expression = expression;
+  }
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitPrintStmt(this);
   }
 }
 

@@ -1,10 +1,14 @@
 import {
   ExprVisitor,
+  StmtVisitor,
   GroupingExpr,
   LiteralExpr,
   Expr,
   UnaryExpr,
   BinaryExpr,
+  ExpressionStmt,
+  PrintStmt,
+  Stmt,
 } from "./ast";
 import { runtimeError } from "./lox";
 import { LoxObject } from "./types";
@@ -13,11 +17,12 @@ import Token from "./token";
 import { RuntimeError } from "./error";
 
 // Object is the implementation language type we use to hold Lox values
-export class Interpreter implements ExprVisitor<LoxObject> {
-  interpret(expression: Expr): void {
+export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
+  interpret(statements: Stmt[]): void {
     try {
-      const value: LoxObject = this.evaluate(expression);
-      console.log(this.stringify(value));
+      for (const statement of statements) {
+        this.execute(statement);
+      }
     } catch (error) {
       runtimeError(error as RuntimeError);
     }
@@ -43,12 +48,6 @@ export class Interpreter implements ExprVisitor<LoxObject> {
   public visitGroupingExpr(expr: GroupingExpr): LoxObject {
     // recursively evaluate the sub expression within the grouping expression
     return this.evaluate(expr.expression);
-  }
-
-  private isTruthy(object: LoxObject) {
-    if (object === null) return false;
-    if (object instanceof Boolean) return Boolean(object);
-    return true;
   }
 
   public visitBinaryExpr(expr: BinaryExpr): LoxObject {
@@ -101,6 +100,15 @@ export class Interpreter implements ExprVisitor<LoxObject> {
     return null;
   }
 
+  visitExpressionStmt(stmt: ExpressionStmt): void {
+    this.evaluate(stmt.expression);
+  }
+
+  visitPrintStmt(stmt: PrintStmt): void {
+    const value = this.evaluate(stmt.expression);
+    console.log(this.stringify(value));
+  }
+
   private checkNumberOperand(operator: Token, operand: LoxObject) {
     if (typeof operand === "number") return;
     throw new RuntimeError(operator, "Operator must be a number.");
@@ -113,6 +121,12 @@ export class Interpreter implements ExprVisitor<LoxObject> {
   ) {
     if (typeof left === "number" && typeof right === "number") return;
     throw new RuntimeError(operator, "Operator must be a number.");
+  }
+
+  private isTruthy(object: LoxObject) {
+    if (object === null) return false;
+    if (object instanceof Boolean) return Boolean(object);
+    return true;
   }
 
   private isEqual(a: LoxObject, b: LoxObject) {
@@ -133,5 +147,9 @@ export class Interpreter implements ExprVisitor<LoxObject> {
 
   private evaluate(expr: Expr): LoxObject | RuntimeError {
     return expr.accept(this);
+  }
+
+  private execute(stmt: Stmt) {
+    stmt.accept(this);
   }
 }
