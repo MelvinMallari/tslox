@@ -10,6 +10,7 @@ export interface ExprVisitor<T> {
   visitGroupingExpr(expr: GroupingExpr): T;
   visitLiteralExpr(expr: LiteralExpr): T;
   visitUnaryExpr(expr: UnaryExpr): T;
+  visitVariableExpr(expr: VariableExpr): T;
 }
 
 export interface Stmt {
@@ -19,6 +20,7 @@ export interface Stmt {
 export interface StmtVisitor<T> {
   visitExpressionStmt(stmt: ExpressionStmt): T;
   visitPrintStmt(stmt: PrintStmt): T;
+  visitVarStmt(stmt: VarStmt): T;
 }
 
 export class BinaryExpr implements Expr {
@@ -75,6 +77,18 @@ export class UnaryExpr implements Expr {
   }
 }
 
+export class VariableExpr implements Expr {
+  readonly name: Token;
+
+  constructor(name: Token) {
+    this.name = name;
+  }
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitVariableExpr(this);
+  }
+}
+
 export class ExpressionStmt implements Stmt {
   readonly expression: Expr;
 
@@ -99,49 +113,63 @@ export class PrintStmt implements Stmt {
   }
 }
 
-export class AstPrinter implements ExprVisitor<string> {
-  private parenthesize(name: string, ...exprs: Array<Expr>) {
-    let res = "(";
+export class VarStmt implements Stmt {
+  readonly name: Token;
+  readonly initializer: Expr | null;
 
-    res += `${name}`;
-    for (const expr of exprs) {
-      res += ` ${expr.accept(this)}`;
-    }
-    res += ")";
-
-    return res;
+  constructor(name: Token, initializer: Expr | null = null) {
+    this.name = name;
+    this.initializer = initializer;
   }
 
-  visitBinaryExpr(expr: BinaryExpr): string {
-    return this.parenthesize(expr.operator.lexeme, expr.left, expr.right);
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitVarStmt(this);
   }
-
-  visitGroupingExpr(expr: GroupingExpr): string {
-    return this.parenthesize("group", expr.expression);
-  }
-
-  visitLiteralExpr(expr: LiteralExpr): string {
-    return expr.value === null ? "" : expr.value.toString();
-  }
-
-  visitUnaryExpr(expr: UnaryExpr): string {
-    return this.parenthesize(expr.operator.lexeme, expr.right);
-  }
-
-  print(expr: Expr) {
-    return expr.accept(this);
-  }
-
-  // static main(): void {
-  //   const expression = new BinaryExpr(
-  //     new UnaryExpr(
-  //       new Token(TokenType.MINUS, "-", null, 1),
-  //       new LiteralExpr(123)
-  //     ),
-  //     new Token(TokenType.STAR, "*", null, 1),
-  //     new GroupingExpr(new LiteralExpr(45.67))
-  //   );
-
-  //   console.log(new AstPrinter().print(expression));
-  // }
 }
+
+// export class AstPrinter implements ExprVisitor<string> {
+//   private parenthesize(name: string, ...exprs: Array<Expr>) {
+//     let res = "(";
+
+//     res += `${name}`;
+//     for (const expr of exprs) {
+//       res += ` ${expr.accept(this)}`;
+//     }
+//     res += ")";
+
+//     return res;
+//   }
+
+//   visitBinaryExpr(expr: BinaryExpr): string {
+//     return this.parenthesize(expr.operator.lexeme, expr.left, expr.right);
+//   }
+
+//   visitGroupingExpr(expr: GroupingExpr): string {
+//     return this.parenthesize("group", expr.expression);
+//   }
+
+//   visitLiteralExpr(expr: LiteralExpr): string {
+//     return expr.value === null ? "" : expr.value.toString();
+//   }
+
+//   visitUnaryExpr(expr: UnaryExpr): string {
+//     return this.parenthesize(expr.operator.lexeme, expr.right);
+//   }
+
+//   print(expr: Expr) {
+//     return expr.accept(this);
+//   }
+
+// static main(): void {
+//   const expression = new BinaryExpr(
+//     new UnaryExpr(
+//       new Token(TokenType.MINUS, "-", null, 1),
+//       new LiteralExpr(123)
+//     ),
+//     new Token(TokenType.STAR, "*", null, 1),
+//     new GroupingExpr(new LiteralExpr(45.67))
+//   );
+
+//   console.log(new AstPrinter().print(expression));
+// }
+// }
