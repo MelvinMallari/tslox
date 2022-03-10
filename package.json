@@ -6,7 +6,8 @@
   "scripts": {
     "tsc": "tsc",
     "start": "ts-node-dev --respawn src/lox.ts",
-    "dev": "nodemon --exec ts-node src/lox.ts"
+    "dev": "nodemon --exec ts-node src/lox.ts",
+    "build": "node dist/lox.js"
   },
   "keywords": [],
   "author": "",

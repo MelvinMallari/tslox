@@ -9,19 +9,25 @@ import {
   ExpressionStmt,
   PrintStmt,
   Stmt,
+  VarStmt,
+  VariableExpr,
+  AssignExpr,
 } from "./ast";
 import { runtimeError } from "./lox";
 import { LoxObject } from "./types";
 import TokenType from "./tokenType";
 import Token from "./token";
 import { RuntimeError } from "./error";
+import Environment from "./environment";
 
 // Object is the implementation language type we use to hold Lox values
 export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
-  interpret(statements: Stmt[]): void {
+  private environment = new Environment();
+
+  interpret(statements: (Stmt | null)[]): void {
     try {
       for (const statement of statements) {
-        this.execute(statement);
+        this.execute(statement!);
       }
     } catch (error) {
       runtimeError(error as RuntimeError);
@@ -100,6 +106,17 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     return null;
   }
 
+  visitVariableExpr(expr: VariableExpr): LoxObject {
+    console.log("visitVariableExpr", this.environment);
+    return this.environment.get(expr.name);
+  }
+
+  visitAssignExpr(expr: AssignExpr): LoxObject {
+    const value = this.evaluate(expr);
+    this.environment.assign(expr.name, value);
+    return value;
+  }
+
   visitExpressionStmt(stmt: ExpressionStmt): void {
     this.evaluate(stmt.expression);
   }
@@ -107,6 +124,17 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   visitPrintStmt(stmt: PrintStmt): void {
     const value = this.evaluate(stmt.expression);
     console.log(this.stringify(value));
+  }
+
+  visitVarStmt(stmt: VarStmt): void {
+    let value: LoxObject = null;
+
+    // if variable has initializer, evaluate it.
+    if (stmt.initializer !== null) {
+      value = this.evaluate(stmt.initializer);
+    }
+    this.environment.define(stmt.name.lexeme, value);
+    console.log("should be defining in environment here", this.environment);
   }
 
   private checkNumberOperand(operator: Token, operand: LoxObject) {

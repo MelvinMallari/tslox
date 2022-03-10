@@ -11,6 +11,7 @@ import {
   ExpressionStmt,
   VariableExpr,
   VarStmt,
+  AssignExpr,
 } from "./ast";
 import { ParseError } from "./error";
 import { error as loxError } from "./lox";
@@ -31,11 +32,6 @@ export class Parser {
     return statements;
   }
 
-  // expression → equality ;
-  private expression(): Expr {
-    return this.equality();
-  }
-
   private declaration(): Stmt | null {
     try {
       if (this.match(TokenType.VAR)) return this.varDeclaration();
@@ -44,6 +40,35 @@ export class Parser {
       this.synchronize();
       return null;
     }
+  }
+
+  // expression → assignment ;
+  private expression(): Expr {
+    return this.assignment();
+  }
+
+  // assignment → IDENTIFIER "=" assignment | equality ;
+  private assignment(): Expr {
+    // recursively parser left hand side to figure out what kind of assignment target it is
+    // this works because every valid targe also happens to be valid syntax as normal expression
+    let expr = this.equality();
+
+    if (this.match(TokenType.EQUAL)) {
+      const equals = this.previous();
+      // this parsers the right hand side of the assignment, recursively
+      // this only needs a single token look ahead!
+      const value = this.assignment();
+
+      if (expr instanceof VariableExpr) {
+        const name = expr.name;
+        return new AssignExpr(name, value);
+      }
+
+      // can only assign to variables
+      this.error(equals, "Invalid assignment target");
+    }
+
+    return expr;
   }
 
   // equality → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -195,7 +220,7 @@ export class Parser {
     }
   }
 
-  // checks if current token matches any in input array of types
+  // checks if current token matches any in input array of types, consumes it if match
   private match(...types: TokenType[]): boolean {
     for (const type of types) {
       if (this.check(type)) {

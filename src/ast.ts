@@ -11,6 +11,7 @@ export interface ExprVisitor<T> {
   visitLiteralExpr(expr: LiteralExpr): T;
   visitUnaryExpr(expr: UnaryExpr): T;
   visitVariableExpr(expr: VariableExpr): T;
+  visitAssignExpr(expr: AssignExpr): T;
 }
 
 export interface Stmt {
@@ -86,6 +87,20 @@ export class VariableExpr implements Expr {
 
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitVariableExpr(this);
+  }
+}
+
+export class AssignExpr implements Expr {
+  readonly name: Token; // token for variable being assigned to
+  readonly value: Expr; // expression for the new value
+
+  constructor(name: Token, value: Expr) {
+    this.name = name;
+    this.value = value;
+  }
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitAssignExpr(this);
   }
 }
 

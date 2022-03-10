@@ -15,7 +15,7 @@ import { Parser } from "./parser";
 import { Interpreter } from "./interpreter";
 
 export const runtimeError = (error: RuntimeError): void => {
-  console.log(`${error.message} [line "${error.token.line}]`);
+  console.log(`${error.message} [line "${error.token.line}"]`);
   setHadRuntimeError(true);
 };
 
@@ -78,6 +78,7 @@ const run = (src: string): void => {
   }
 
   interpreter.interpret(statements);
+
   // stop if runtime error
   if (getHadRuntimeError()) {
     console.log("had runtime error");
