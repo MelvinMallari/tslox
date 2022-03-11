@@ -12,6 +12,7 @@ import {
   VarStmt,
   VariableExpr,
   AssignExpr,
+  BlockStmt,
 } from "./ast";
 import { runtimeError } from "./lox";
 import { LoxObject } from "./types";
@@ -133,7 +134,23 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
       value = this.evaluate(stmt.initializer);
     }
     this.environment.define(stmt.name.lexeme, value);
-    console.log("should be defining in environment here", this.environment);
+  }
+
+  visitBlockStmt(stmt: BlockStmt): void {
+    // create a new environment for the blocks scope & execute
+    this.executeBlock(stmt.statements, new Environment(this.environment));
+  }
+
+  private executeBlock(statements: Stmt[], environment: Environment): void {
+    const previousEnvironment = this.environment;
+    try {
+      this.environment = environment;
+      for (const statement of statements) {
+        this.execute(statement);
+      }
+    } finally {
+      this.environment = previousEnvironment;
+    }
   }
 
   private checkNumberOperand(operator: Token, operand: LoxObject) {

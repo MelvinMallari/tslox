@@ -3,10 +3,14 @@ import Token from "./token";
 import { RuntimeError } from "./error";
 
 export default class Environment {
-  private values: Record<string, LoxObject>;
+  private values: Record<string, LoxObject> = {};
+  private enclosing: Environment | null;
 
-  constructor(values = {}) {
-    this.values = values;
+  constructor(enclosing?: Environment) {
+    // enclosing like the concept of _closure_
+    // null enclosing is for global scope environment.
+    // if we have enclosing, we have a nested, tree like structure
+    this.enclosing = enclosing ? enclosing : null;
   }
 
   define(name: string, value: LoxObject): void {
@@ -15,6 +19,8 @@ export default class Environment {
 
   get(name: Token): LoxObject {
     if (name.lexeme in this.values) return this.values[name.lexeme];
+    // if the value isn't found in this environment, check the enclosing one
+    if (this.enclosing != null) return this.enclosing.get(name);
     throw new RuntimeError(name, `Undefined variable '${name.lexeme}'`);
   }
 
@@ -25,7 +31,11 @@ export default class Environment {
       return;
     }
 
-    console.log("assign");
+    if (this.enclosing !== null) {
+      this.enclosing.assign(name, value);
+      return;
+    }
+
     throw new RuntimeError(name, `Undefined variable '${name.lexeme}'.`);
   }
 }
