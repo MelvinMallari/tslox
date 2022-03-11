@@ -11,11 +11,9 @@ export default class Environment {
 
   define(name: string, value: LoxObject): void {
     this.values[name] = value;
-    console.log("define", this.values);
   }
 
   get(name: Token): LoxObject {
-    console.log("in environment", this.values, name.lexeme);
     if (name.lexeme in this.values) return this.values[name.lexeme];
     throw new RuntimeError(name, `Undefined variable '${name.lexeme}'`);
   }
@@ -27,6 +25,7 @@ export default class Environment {
       return;
     }
 
+    console.log("assign");
     throw new RuntimeError(name, `Undefined variable '${name.lexeme}'.`);
   }
 }

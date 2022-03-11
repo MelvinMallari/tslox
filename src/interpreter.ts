@@ -107,12 +107,11 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   }
 
   visitVariableExpr(expr: VariableExpr): LoxObject {
-    console.log("visitVariableExpr", this.environment);
     return this.environment.get(expr.name);
   }
 
   visitAssignExpr(expr: AssignExpr): LoxObject {
-    const value = this.evaluate(expr);
+    const value = this.evaluate(expr.value);
     this.environment.assign(expr.name, value);
     return value;
   }
