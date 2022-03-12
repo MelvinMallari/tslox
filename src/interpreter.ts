@@ -13,6 +13,7 @@ import {
   VariableExpr,
   AssignExpr,
   BlockStmt,
+  IfStmt,
 } from "./ast";
 import { runtimeError } from "./lox";
 import { LoxObject } from "./types";
@@ -119,6 +120,14 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
     this.evaluate(stmt.expression);
+  }
+
+  visitIfStmt(stmt: IfStmt): void {
+    if (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.thenBranch);
+    } else if (stmt.elseBranch !== null) {
+      this.execute(stmt.elseBranch);
+    }
   }
 
   visitPrintStmt(stmt: PrintStmt): void {

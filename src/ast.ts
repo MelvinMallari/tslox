@@ -14,6 +14,7 @@ export interface ExprVisitor<T> {
   visitAssignExpr(expr: AssignExpr): T;
 }
 
+export type statement = Stmt | null;
 export interface Stmt {
   accept<T>(visitor: StmtVisitor<T>): T;
 }
@@ -23,6 +24,7 @@ export interface StmtVisitor<T> {
   visitPrintStmt(stmt: PrintStmt): T;
   visitVarStmt(stmt: VarStmt): T;
   visitBlockStmt(stmt: BlockStmt): T;
+  visitIfStmt(stmt: IfStmt): T;
 }
 
 export class BinaryExpr implements Expr {
@@ -142,6 +144,7 @@ export class VarStmt implements Stmt {
     return visitor.visitVarStmt(this);
   }
 }
+
 export class BlockStmt implements Stmt {
   readonly statements: Stmt[];
 
@@ -151,6 +154,22 @@ export class BlockStmt implements Stmt {
 
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitBlockStmt(this);
+  }
+}
+
+export class IfStmt implements Stmt {
+  readonly condition: Expr;
+  readonly thenBranch: Stmt;
+  readonly elseBranch: Stmt;
+
+  constructor(condition: Expr, thenBranch: Stmt, elseBranch: Stmt) {
+    this.condition = condition;
+    this.thenBranch = thenBranch;
+    this.elseBranch = elseBranch;
+  }
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitIfStmt(this);
   }
 }
 
