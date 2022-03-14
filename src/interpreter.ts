@@ -15,6 +15,7 @@ import {
   BlockStmt,
   IfStmt,
   LogicalExpr,
+  WhileStmt,
 } from "./ast";
 import { runtimeError } from "./lox";
 import { LoxObject } from "./types";
@@ -164,6 +165,13 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   visitBlockStmt(stmt: BlockStmt): void {
     // create a new environment for the blocks scope & execute
     this.executeBlock(stmt.statements, new Environment(this.environment));
+  }
+
+  visitWhileStmt(stmt: WhileStmt): void {
+    // thin wrapper around implementation language's while operator
+    while (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.body);
+    }
   }
 
   private executeBlock(statements: Stmt[], environment: Environment): void {

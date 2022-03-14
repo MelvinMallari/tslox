@@ -26,6 +26,7 @@ export interface StmtVisitor<T> {
   visitVarStmt(stmt: VarStmt): T;
   visitBlockStmt(stmt: BlockStmt): T;
   visitIfStmt(stmt: IfStmt): T;
+  visitWhileStmt(stmt: WhileStmt): T;
 }
 
 export class BinaryExpr implements Expr {
@@ -187,6 +188,20 @@ export class IfStmt implements Stmt {
 
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitIfStmt(this);
+  }
+}
+
+export class WhileStmt implements Stmt {
+  readonly condition: Expr;
+  readonly body: Stmt;
+
+  constructor(condition: Expr, body: Stmt) {
+    this.condition = condition;
+    this.body = body;
+  }
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitWhileStmt(this);
   }
 }
 
