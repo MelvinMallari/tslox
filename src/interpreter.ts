@@ -14,6 +14,7 @@ import {
   AssignExpr,
   BlockStmt,
   IfStmt,
+  LogicalExpr,
 } from "./ast";
 import { runtimeError } from "./lox";
 import { LoxObject } from "./types";
@@ -116,6 +117,21 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     const value = this.evaluate(expr.value);
     this.environment.assign(expr.name, value);
     return value;
+  }
+
+  // design decision to return values with appropriate truthiness.
+  visitLogicalExpr(expr: LogicalExpr): LoxObject {
+    const left = this.evaluate(expr.left);
+
+    if (expr.operator.type == TokenType.OR) {
+      // if or, and left is truthy return left
+      if (this.isTruthy(left)) return left;
+    } else {
+      // if and, and left is falsy, return left
+      if (!this.isTruthy(left)) return left;
+    }
+
+    return this.evaluate(expr.right);
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {

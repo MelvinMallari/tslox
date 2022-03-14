@@ -14,6 +14,7 @@ import {
   AssignExpr,
   BlockStmt,
   IfStmt,
+  LogicalExpr,
 } from "./ast";
 import { ParseError } from "./error";
 import { error as loxError } from "./lox";
@@ -49,11 +50,11 @@ export class Parser {
     return this.assignment();
   }
 
-  // assignment → IDENTIFIER "=" assignment | equality ;
+  // assignment → IDENTIFIER "=" assignment | logic_or ;
   private assignment(): Expr {
     // recursively parser left hand side to figure out what kind of assignment target it is
     // this works because every valid targe also happens to be valid syntax as normal expression
-    let expr = this.equality();
+    let expr = this.or();
 
     if (this.match(TokenType.EQUAL)) {
       const equals = this.previous();
@@ -70,6 +71,31 @@ export class Parser {
       this.error(equals, "Invalid assignment target");
     }
 
+    return expr;
+  }
+
+  // logic_or → logic_and ( "or" logic_and )* ;
+  private or(): Expr {
+    let expr = this.and();
+
+    while (this.match(TokenType.OR)) {
+      const operator = this.previous();
+      const right = this.and();
+      expr = new LogicalExpr(expr, operator, right);
+    }
+
+    return expr;
+  }
+
+  // logic_and → equality ( "and" equality )* ;
+  private and(): Expr {
+    let expr = this.equality();
+
+    while (this.match(TokenType.AND)) {
+      const operator = this.previous();
+      const right = this.equality();
+      expr = new LogicalExpr(expr, operator, right);
+    }
     return expr;
   }
 

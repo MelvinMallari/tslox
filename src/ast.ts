@@ -12,6 +12,7 @@ export interface ExprVisitor<T> {
   visitUnaryExpr(expr: UnaryExpr): T;
   visitVariableExpr(expr: VariableExpr): T;
   visitAssignExpr(expr: AssignExpr): T;
+  visitLogicalExpr(expr: LogicalExpr): T;
 }
 
 export type statement = Stmt | null;
@@ -104,6 +105,22 @@ export class AssignExpr implements Expr {
 
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitAssignExpr(this);
+  }
+}
+
+export class LogicalExpr implements Expr {
+  readonly left: Expr;
+  readonly operator: Token;
+  readonly right: Expr;
+
+  constructor(left: Expr, operator: Token, right: Expr) {
+    this.left = left;
+    this.operator = operator;
+    this.right = right;
+  }
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitLogicalExpr(this);
   }
 }
 
