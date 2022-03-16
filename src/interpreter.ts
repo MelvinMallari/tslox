@@ -202,7 +202,7 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
   private isTruthy(object: LoxObject) {
     if (object === null) return false;
-    if (object instanceof Boolean) return Boolean(object);
+    if (typeof object === "boolean") return Boolean(object);
     return true;
   }
 
