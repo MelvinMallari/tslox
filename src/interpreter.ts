@@ -16,9 +16,10 @@ import {
   IfStmt,
   LogicalExpr,
   WhileStmt,
+  CallExpr,
 } from "./ast";
 import { runtimeError } from "./lox";
-import { LoxObject } from "./types";
+import { isInstanceOfLoxCallable, LoxCallable, LoxObject } from "./types";
 import TokenType from "./tokenType";
 import Token from "./token";
 import { RuntimeError } from "./error";
@@ -133,6 +134,26 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     }
 
     return this.evaluate(expr.right);
+  }
+
+  visitCallExpr(expr: CallExpr): LoxObject {
+    const callee = this.evaluate(expr.callee);
+    const args = expr.args.map((arg) => this.evaluate(arg));
+
+    if (!isInstanceOfLoxCallable(callee)) {
+      throw new RuntimeError(expr.paren, "Can only call functions and classes");
+    }
+
+    const func: LoxCallable = callee;
+
+    if (args.length != func.arity()) {
+      throw new RuntimeError(
+        expr.paren,
+        `Expected ${func.arity()} arguments, but got arguments.size().`
+      );
+    }
+
+    return func.call(this, args);
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
