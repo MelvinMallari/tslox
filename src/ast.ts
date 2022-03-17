@@ -13,6 +13,7 @@ export interface ExprVisitor<T> {
   visitVariableExpr(expr: VariableExpr): T;
   visitAssignExpr(expr: AssignExpr): T;
   visitLogicalExpr(expr: LogicalExpr): T;
+  visitCallExpr(expr: CallExpr): T;
 }
 
 export type statement = Stmt | null;
@@ -122,6 +123,22 @@ export class LogicalExpr implements Expr {
 
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitLogicalExpr(this);
+  }
+}
+
+export class CallExpr implements Expr {
+  readonly callee: Expr;
+  readonly paren: Token;
+  readonly args: Expr[];
+
+  constructor(callee: Expr, paren: Token, args: Expr[]) {
+    this.callee = callee;
+    this.paren = paren;
+    this.args = args;
+  }
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitCallExpr(this);
   }
 }
 

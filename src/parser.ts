@@ -16,6 +16,7 @@ import {
   IfStmt,
   LogicalExpr,
   WhileStmt,
+  CallExpr,
 } from "./ast";
 import { ParseError } from "./error";
 import { error as loxError } from "./lox";
@@ -163,7 +164,41 @@ export class Parser {
       return new UnaryExpr(operator, right);
     }
 
-    return this.primary();
+    return this.call();
+  }
+
+  private call(): Expr {
+    let expr = this.primary();
+
+    while (true) {
+      if (this.match(TokenType.LEFT_PAREN)) {
+        expr = this.finishCall(expr);
+      } else {
+        break;
+      }
+    }
+
+    return expr;
+  }
+
+  private finishCall(callee: Expr): Expr {
+    const args: Expr[] = [];
+
+    // check if there are arguments
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      while (this.match(TokenType.COMMA)) {
+        if (args.length >= 255)
+          this.error(this.peek(), "Can't have more than 255 arguments.");
+        args.push(this.expression());
+      }
+    }
+
+    const paren = this.consume(
+      TokenType.RIGHT_PAREN,
+      "Expect ')' after arguments."
+    );
+
+    return new CallExpr(callee, paren, args);
   }
 
   // primary → NUMBER | STRING | "true" | "false" | "nil" | | "(" expression ")" ;
