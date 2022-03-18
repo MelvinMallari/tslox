@@ -16,7 +16,6 @@ export interface ExprVisitor<T> {
   visitCallExpr(expr: CallExpr): T;
 }
 
-export type statement = Stmt | null;
 export interface Stmt {
   accept<T>(visitor: StmtVisitor<T>): T;
 }
@@ -29,6 +28,7 @@ export interface StmtVisitor<T> {
   visitIfStmt(stmt: IfStmt): T;
   visitWhileStmt(stmt: WhileStmt): T;
   visitFunctionStmt(stmt: FunctionStmt): T;
+  visitReturnStmt(stmt: ReturnStmt): T;
 }
 
 export class BinaryExpr implements Expr {
@@ -238,6 +238,21 @@ export class FunctionStmt implements Stmt {
     return visitor.visitFunctionStmt(this);
   }
 }
+
+export class ReturnStmt implements Stmt {
+  readonly keyword: Token;
+  readonly value: Expr;
+
+  constructor(keyword: Token, value: Expr) {
+    this.keyword = keyword;
+    this.value = value;
+  }
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitReturnStmt(this);
+  }
+}
+
 // export class AstPrinter implements ExprVisitor<string> {
 //   private parenthesize(name: string, ...exprs: Array<Expr>) {
 //     let res = "(";

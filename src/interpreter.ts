@@ -18,6 +18,7 @@ import {
   WhileStmt,
   CallExpr,
   FunctionStmt,
+  ReturnStmt,
 } from "./ast";
 import { runtimeError } from "./lox";
 import {
@@ -25,6 +26,7 @@ import {
   LoxCallable,
   LoxClockFunction,
   LoxFunction,
+  LoxFunctionReturn,
   LoxObject,
 } from "./types";
 import TokenType from "./tokenType";
@@ -210,7 +212,16 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
   visitFunctionStmt(stmt: FunctionStmt): void {
     const func = new LoxFunction(stmt);
+    // declaration also binds the resulting object to a new variable.
+    // here we create a new binding in the current environment and store a reference here:
     this.environment.define(stmt.name.lexeme, func);
+  }
+
+  visitReturnStmt(stmt: ReturnStmt): void {
+    let value = null;
+    if (stmt.value !== null) value = this.evaluate(stmt.value);
+
+    throw new LoxFunctionReturn(value);
   }
 
   executeBlock(statements: Stmt[], environment: Environment): void {

@@ -49,8 +49,14 @@ export class LoxFunction implements LoxCallable {
       environment.define(this.declaration.params[i].lexeme, args[i]);
     }
 
-    // executes the block and restores the previous environment
-    interpreter.executeBlock(this.declaration.body, environment);
+    try {
+      // executes the block and restores the previous environment
+      interpreter.executeBlock(this.declaration.body, environment);
+    } catch (error) {
+      const returnValue = error as LoxFunctionReturn;
+      return returnValue.value;
+    }
+
     return null;
   }
 
@@ -60,5 +66,14 @@ export class LoxFunction implements LoxCallable {
 
   toString(): string {
     return `<fn ${this.declaration.name.lexeme} >`;
+  }
+}
+
+export class LoxFunctionReturn extends Error {
+  readonly value: LoxObject;
+
+  constructor(value: LoxObject) {
+    super("");
+    this.value = value;
   }
 }
