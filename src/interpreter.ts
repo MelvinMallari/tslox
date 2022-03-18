@@ -162,7 +162,7 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     if (args.length != func.arity()) {
       throw new RuntimeError(
         expr.paren,
-        `Expected ${func.arity()} arguments, but got arguments.size().`
+        `Expected ${func.arity()} arguments, but got ${args.length}.`
       );
     }
 

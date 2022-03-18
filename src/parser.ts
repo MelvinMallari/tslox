@@ -188,11 +188,11 @@ export class Parser {
 
     // check if there are arguments
     if (!this.check(TokenType.RIGHT_PAREN)) {
-      while (this.match(TokenType.COMMA)) {
+      do {
         if (args.length >= 255)
           this.error(this.peek(), "Can't have more than 255 arguments.");
         args.push(this.expression());
-      }
+      } while (this.match(TokenType.COMMA));
     }
 
     const paren = this.consume(
@@ -328,18 +328,17 @@ export class Parser {
     const name = this.consume(TokenType.IDENTIFIER, `Expect ${kind} name.`);
     this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} name.`);
     const parameters = [];
-    // checks if there are parameters
-    if (!this.check(TokenType.RIGHT_PAREN)) {
-      while (this.match(TokenType.COMMA)) {
-        if (parameters.length >= 255) {
-          this.error(this.peek(), "can't have more than 255 parameters");
-        }
 
-        parameters.push(
-          this.consume(TokenType.IDENTIFIER, "Expect paramter name")
-        );
+    do {
+      if (parameters.length >= 255) {
+        this.error(this.peek(), "can't have more than 255 parameters");
       }
-    }
+
+      parameters.push(
+        this.consume(TokenType.IDENTIFIER, "Expect parameters name")
+      );
+    } while (this.match(TokenType.COMMA)); // checks if there are more parameters
+
     this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
 
     // parse the body and wrap in a function ast node.
