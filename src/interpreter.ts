@@ -17,12 +17,14 @@ import {
   LogicalExpr,
   WhileStmt,
   CallExpr,
+  FunctionStmt,
 } from "./ast";
 import { runtimeError } from "./lox";
 import {
   isInstanceOfLoxCallable,
   LoxCallable,
   LoxClockFunction,
+  LoxFunction,
   LoxObject,
 } from "./types";
 import TokenType from "./tokenType";
@@ -33,7 +35,7 @@ import Environment from "./environment";
 // Object is the implementation language type we use to hold Lox values
 export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   // we need a fixed reference to the global environment
-  private globals = new Environment();
+  globals = new Environment();
   private environment = this.globals;
 
   constructor() {
@@ -206,7 +208,12 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     }
   }
 
-  private executeBlock(statements: Stmt[], environment: Environment): void {
+  visitFunctionStmt(stmt: FunctionStmt): void {
+    const func = new LoxFunction(stmt);
+    this.environment.define(stmt.name.lexeme, func);
+  }
+
+  executeBlock(statements: Stmt[], environment: Environment): void {
     const previousEnvironment = this.environment;
     try {
       this.environment = environment;

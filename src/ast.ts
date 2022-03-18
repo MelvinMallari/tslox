@@ -28,7 +28,7 @@ export interface StmtVisitor<T> {
   visitBlockStmt(stmt: BlockStmt): T;
   visitIfStmt(stmt: IfStmt): T;
   visitWhileStmt(stmt: WhileStmt): T;
-  visitFunctionStmt(Smt: FunctionStmt): T;
+  visitFunctionStmt(stmt: FunctionStmt): T;
 }
 
 export class BinaryExpr implements Expr {
