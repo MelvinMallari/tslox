@@ -19,7 +19,12 @@ import {
   CallExpr,
 } from "./ast";
 import { runtimeError } from "./lox";
-import { isInstanceOfLoxCallable, LoxCallable, LoxObject } from "./types";
+import {
+  isInstanceOfLoxCallable,
+  LoxCallable,
+  LoxClockFunction,
+  LoxObject,
+} from "./types";
 import TokenType from "./tokenType";
 import Token from "./token";
 import { RuntimeError } from "./error";
@@ -27,7 +32,13 @@ import Environment from "./environment";
 
 // Object is the implementation language type we use to hold Lox values
 export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
-  private environment = new Environment();
+  // we need a fixed reference to the global environment
+  private globals = new Environment();
+  private environment = this.globals;
+
+  constructor() {
+    this.globals.define("clock", new LoxClockFunction());
+  }
 
   interpret(statements: (Stmt | null)[]): void {
     try {
