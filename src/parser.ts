@@ -17,6 +17,7 @@ import {
   LogicalExpr,
   WhileStmt,
   CallExpr,
+  FunctionStmt,
 } from "./ast";
 import { ParseError } from "./error";
 import { error as loxError } from "./lox";
@@ -39,6 +40,7 @@ export class Parser {
 
   private declaration(): Stmt | null {
     try {
+      if (this.match(TokenType.FUN)) return this.function("function");
       if (this.match(TokenType.VAR)) return this.varDeclaration();
       return this.statement();
     } catch (error) {
@@ -320,6 +322,30 @@ export class Parser {
     const expr = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after expression.");
     return new ExpressionStmt(expr);
+  }
+
+  private function(kind: string): FunctionStmt {
+    const name = this.consume(TokenType.IDENTIFIER, `Expect ${kind} name.`);
+    this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} name.`);
+    const parameters = [];
+    // checks if there are parameters
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      while (this.match(TokenType.COMMA)) {
+        if (parameters.length >= 255) {
+          this.error(this.peek(), "can't have more than 255 parameters");
+        }
+
+        parameters.push(
+          this.consume(TokenType.IDENTIFIER, "Expect paramter name")
+        );
+      }
+    }
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+    // parse the body and wrap in a function ast node.
+    this.consume(TokenType.LEFT_BRACE, `Expect '{' before ${kind} body.`);
+    const body = this.block();
+    return new FunctionStmt(name, parameters, body);
   }
 
   private block(): Stmt[] {

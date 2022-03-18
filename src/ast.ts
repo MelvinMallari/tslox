@@ -28,6 +28,7 @@ export interface StmtVisitor<T> {
   visitBlockStmt(stmt: BlockStmt): T;
   visitIfStmt(stmt: IfStmt): T;
   visitWhileStmt(stmt: WhileStmt): T;
+  visitFunctionStmt(Smt: FunctionStmt): T;
 }
 
 export class BinaryExpr implements Expr {
@@ -222,6 +223,21 @@ export class WhileStmt implements Stmt {
   }
 }
 
+export class FunctionStmt implements Stmt {
+  readonly name: Token;
+  readonly params: Token[];
+  readonly body: Stmt[];
+
+  constructor(name: Token, params: Token[], body: Stmt[]) {
+    this.name = name;
+    this.params = params;
+    this.body = body;
+  }
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitFunctionStmt(this);
+  }
+}
 // export class AstPrinter implements ExprVisitor<string> {
 //   private parenthesize(name: string, ...exprs: Array<Expr>) {
 //     let res = "(";
