@@ -341,15 +341,17 @@ export class Parser {
     this.consume(TokenType.LEFT_PAREN, `Expect '(' after ${kind} name.`);
     const parameters = [];
 
-    do {
-      if (parameters.length >= 255) {
-        this.error(this.peek(), "can't have more than 255 parameters");
-      }
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (parameters.length >= 255) {
+          this.error(this.peek(), "can't have more than 255 parameters");
+        }
 
-      parameters.push(
-        this.consume(TokenType.IDENTIFIER, "Expect parameters name")
-      );
-    } while (this.match(TokenType.COMMA)); // checks if there are more parameters
+        parameters.push(
+          this.consume(TokenType.IDENTIFIER, "Expect parameters name")
+        );
+      } while (this.match(TokenType.COMMA)); // checks if there are more parameters
+    }
 
     this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
 
