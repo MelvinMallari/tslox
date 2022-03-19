@@ -30,15 +30,17 @@ export class LoxClockFunction implements LoxCallable {
 
 export class LoxFunction implements LoxCallable {
   private readonly declaration;
+  private readonly closure;
 
-  constructor(declaration: FunctionStmt) {
+  constructor(declaration: FunctionStmt, closure: Environment) {
     this.declaration = declaration;
+    this.closure = closure;
   }
 
   // invokes the function!
   call(interpreter: Interpreter, args: LoxObject[]): LoxObject {
-    // create a new environment for the function with the global as the enclosing env
-    const environment = new Environment(interpreter.globals);
+    // create a new environment for the function with the enclosing env
+    const environment = new Environment(this.closure);
 
     /**
      *  parameters are scoped to a function blocks environment

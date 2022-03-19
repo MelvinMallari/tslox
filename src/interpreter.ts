@@ -211,7 +211,9 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   }
 
   visitFunctionStmt(stmt: FunctionStmt): void {
-    const func = new LoxFunction(stmt);
+    // pass the current environment into the LoxFunction to preserve closure
+    // this is the environment that is active when the function is declared.
+    const func = new LoxFunction(stmt, this.environment);
     // declaration also binds the resulting object to a new variable.
     // here we create a new binding in the current environment and store a reference here:
     this.environment.define(stmt.name.lexeme, func);
