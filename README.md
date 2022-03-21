@@ -1,6 +1,6 @@
 # tslox
 
-a typescript implementation of the lox programming language as outline in _crafting interpreters_ by Bob Nystrom.
+a typescript implementation of the lox programming language as outlined in _crafting interpreters_ by Bob Nystrom.
 
 ### grammar
 
@@ -75,46 +75,39 @@ primary        → "true" | "false" | "nil"
 
 ### how to read grammar notation:
 
-```
-
 instead of repeating a set of rules, allow of a series using separated pipes (|)
+
 ```
-
 bread → "toast" | "biscuits" | "English muffin" ;
-
 ```
 
 allow parentheses for grouping:
-```
 
+```
 protein → ( "scrambled" | "poached" | "fried" ) "eggs" ;
-
 ```
 
-use postfix * to allow previous symbol or groups of symbol to be repeated 0 or more times.
-```
+use postfix \* to allow previous symbol or groups of symbol to be repeated 0 or more times.
 
+```
 crispiness → "really" "really"\* ;
-
 ```
 
 use + to require preceding production to appear at least once
+
 ```
-
 crispiness → "really"+ ;
-
 ```
 
 use ? for an optional production. 0 or 1 time, but no more
+
 ```
-
 breakfast → protein ( "with" breakfast "on the side" )? ;
-
 ```
 
 using these representations, we can represent the context-free grammar as:
-```
 
+```
 breakfast → protein ( "with" breakfast "on the side" )?
 | bread ;
 
@@ -123,7 +116,4 @@ protein → "really"+ "crispy" "bacon"
 | ( "scrambled" | "poached" | "fried" ) "eggs" ;
 
 bread → "toast" | "biscuits" | "English muffin" ;
-
-```
-
 ```
