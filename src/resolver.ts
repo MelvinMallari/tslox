@@ -1,6 +1,13 @@
-import { BlockStmt, ExprVisitor, StmtVisitor, VarStmt } from "./ast";
+import {
+  BlockStmt,
+  ExprVisitor,
+  StmtVisitor,
+  VariableExpr,
+  VarStmt,
+} from "./ast";
 import { Interpreter } from "./interpreter";
 import { Stmt, Expr } from "./ast";
+import { error } from "./lox";
 import Token from "./token";
 
 class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
@@ -25,8 +32,28 @@ class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.define(stmt.name);
   }
 
+  visitVariableExpr(expr: VariableExpr): void {
+    if (
+      !(this.scopes.length === 0) &&
+      this.scopes[-1].get(expr.name.lexeme) === false
+    ) {
+      error(expr.name, "Can't read local variable in its own initializer.");
+    }
+
+    this.resolveLocal(expr, expr.name);
+  }
+
   resolve(statements: Stmt[]): void {
     statements.forEach((statement) => this.resolveStatement(statement));
+  }
+
+  resolveLocal(expr: Expr, name: Token): void {
+    for (let i = this.scopes.length - 1; i >= 0; i--) {
+      if (this.scopes[i].has(name.lexeme)) {
+        this.interpreter.resolve(expr, this.scopes.length - 1 - i);
+        return;
+      }
+    }
   }
 
   private resolveStatement(stmt: Stmt) {
