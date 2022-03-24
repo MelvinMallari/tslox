@@ -1,4 +1,5 @@
 import {
+  AssignExpr,
   BlockStmt,
   ExprVisitor,
   StmtVisitor,
@@ -43,6 +44,11 @@ class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.resolveLocal(expr, expr.name);
   }
 
+  visitAssignExpr(expr: AssignExpr): void {
+    this.resolveExpression(expr.value);
+    this.resolveLocal(expr, expr.name);
+  }
+
   resolve(statements: Stmt[]): void {
     statements.forEach((statement) => this.resolveStatement(statement));
   }
@@ -50,6 +56,7 @@ class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   resolveLocal(expr: Expr, name: Token): void {
     for (let i = this.scopes.length - 1; i >= 0; i--) {
       if (this.scopes[i].has(name.lexeme)) {
+        // pass how many "hops" we had to take to maintain closure consistency
         this.interpreter.resolve(expr, this.scopes.length - 1 - i);
         return;
       }
