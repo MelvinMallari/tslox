@@ -13,6 +13,18 @@ export default class Environment {
     this.enclosing = enclosing ? enclosing : null;
   }
 
+  ancestor(distance: number): Environment {
+    let environment: Environment = this;
+    for (let i = 0; i < distance; i++) {
+      environment = environment.enclosing!;
+    }
+    return environment;
+  }
+
+  getAt(distance: number, name: string) {
+    return this.ancestor(distance).values[name];
+  }
+
   define(name: string, value: LoxObject): void {
     this.values[name] = value;
   }

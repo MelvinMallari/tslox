@@ -39,6 +39,7 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   // we need a fixed reference to the global environment
   globals = new Environment();
   private environment = this.globals;
+  private locals: Map<Expr, number> = new Map();
 
   constructor() {
     this.globals.define("clock", new LoxClockFunction());
@@ -127,7 +128,7 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   }
 
   visitVariableExpr(expr: VariableExpr): LoxObject {
-    return this.environment.get(expr.name);
+    return this.lookUpVariable(expr.name, expr);
   }
 
   visitAssignExpr(expr: AssignExpr): LoxObject {
@@ -238,6 +239,14 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     }
   }
 
+  private lookUpVariable(name: Token, expr: Expr) {
+    const distance = this.locals.get(expr);
+    return distance !== undefined
+      ? this.environment.getAt(distance, name.lexeme)
+      : // if distance is undefined, it must not be in locals & is therefore in global scope
+        this.globals.get(name);
+  }
+
   private checkNumberOperand(operator: Token, operand: LoxObject) {
     if (typeof operand === "number") return;
     throw new RuntimeError(operator, "Operator must be a number.");
@@ -280,5 +289,9 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
   private execute(stmt: Stmt) {
     stmt.accept(this);
+  }
+
+  resolve(expr: Expr, depth: number) {
+    this.locals.set(expr, depth);
   }
 }
