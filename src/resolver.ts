@@ -52,7 +52,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   visitVariableExpr(expr: VariableExpr): void {
     if (
       !(this.scopes.length === 0) &&
-      this.scopes[-1].get(expr.name.lexeme) === false
+      this.scopes[this.scopes.length - 1].get(expr.name.lexeme) === false
     ) {
       error(expr.name, "Can't read local variable in its own initializer.");
     }
@@ -174,7 +174,10 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   private declare(name: Token): void {
     if (this.scopes.length === 0) return;
 
-    const scope = this.scopes[-1];
+    const scope = this.scopes[this.scopes.length - 1];
+    if (scope.has(name.lexeme)) {
+      error(name, "Already a variable with this name in this scope.");
+    }
     // adds to the inner most scope so it shadows outer ones
     scope.set(name.lexeme, false);
   }
@@ -182,6 +185,6 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   // marks a variable's value in the scope map as fully initialized & available for use
   private define(name: Token): void {
     if (this.scopes.length === 0) return;
-    this.scopes[-1].set(name.lexeme, true);
+    this.scopes[this.scopes.length - 1].set(name.lexeme, true);
   }
 }
