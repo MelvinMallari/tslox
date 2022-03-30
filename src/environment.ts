@@ -25,6 +25,10 @@ export default class Environment {
     return this.ancestor(distance).values[name];
   }
 
+  assignAt(distance: number, name: Token, value: LoxObject) {
+    this.ancestor(distance).values[name.lexeme] = value;
+  }
+
   define(name: string, value: LoxObject): void {
     this.values[name] = value;
   }

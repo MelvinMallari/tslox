@@ -13,6 +13,7 @@ import Token from "./token";
 import TokenType from "./tokenType";
 import { Parser } from "./parser";
 import { Interpreter } from "./interpreter";
+import { Resolver } from "./resolver";
 
 export const runtimeError = (error: RuntimeError): void => {
   console.log(`${error.message} [line "${error.token.line}"]`);
@@ -77,6 +78,9 @@ const run = (src: string): void => {
     process.exit(65);
   }
 
+  // run the semantic analysis pass before interpreting
+  const resolver = new Resolver(interpreter);
+  resolver.resolve(statements!);
   interpreter.interpret(statements);
 
   // stop if runtime error

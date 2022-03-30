@@ -133,7 +133,15 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
   visitAssignExpr(expr: AssignExpr): LoxObject {
     const value = this.evaluate(expr.value);
-    this.environment.assign(expr.name, value);
+    const distance = this.locals.get(expr);
+
+    if (distance != null) {
+      // walk the fixed number of environments, then stuffs the new value in that map
+      this.environment.assignAt(distance, expr.name, value);
+    } else {
+      // if distance is null, then we know it's a global
+      this.globals.assign(expr.name, value);
+    }
     return value;
   }
 

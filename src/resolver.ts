@@ -27,7 +27,7 @@ import Token from "./token";
 // this means that it inspects the user's program, finds every variable mentioned
 // & figures out which declaration each refers to
 // our analysis will resolve variable bindings — we'll know what expression that variable is & what variable that is
-class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
+export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   private readonly interpreter: Interpreter;
   private readonly scopes: Map<string, boolean>[] = [];
 

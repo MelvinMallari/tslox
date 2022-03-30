@@ -31,10 +31,10 @@ export class Parser {
     this.tokens = tokens;
   }
 
-  parse(): (Stmt | null)[] {
-    const statements: (Stmt | null)[] = [];
+  parse(): Stmt[] {
+    const statements: Stmt[] = [];
     while (!this.isAtEnd()) {
-      statements.push(this.declaration());
+      statements.push(this.declaration()!);
     }
     return statements;
   }
