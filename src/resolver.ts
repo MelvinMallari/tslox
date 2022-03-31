@@ -23,6 +23,11 @@ import { Stmt, Expr } from "./ast";
 import { error } from "./lox";
 import Token from "./token";
 
+enum FunctionType {
+  NONE,
+  FUNCTION,
+}
+
 // the resolver is semantically analyzes the code.
 // this means that it inspects the user's program, finds every variable mentioned
 // & figures out which declaration each refers to
@@ -30,6 +35,7 @@ import Token from "./token";
 export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   private readonly interpreter: Interpreter;
   private readonly scopes: Map<string, boolean>[] = [];
+  private currentFunction: FunctionType = FunctionType.NONE;
 
   constructor(interpreter: Interpreter) {
     this.interpreter = interpreter;
@@ -71,7 +77,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.declare(stmt.name);
     // unlike variables, define eagerly so that the function may refer to itself recursively
     this.define(stmt.name);
-    this.resolveFunction(stmt);
+    this.resolveFunction(stmt, FunctionType.FUNCTION);
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
@@ -89,6 +95,11 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitReturnStmt(stmt: ReturnStmt): void {
+    // because we keep track of the current function scope,
+    // we can tell whether we're in a function
+    if (this.currentFunction === FunctionType.NONE) {
+      error(stmt.keyword, "Can't return from top-level code");
+    }
     if (stmt.value !== null) {
       this.resolveExpression(stmt.value);
     }
@@ -140,7 +151,11 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
   }
 
-  private resolveFunction(func: FunctionStmt) {
+  private resolveFunction(func: FunctionStmt, type: FunctionType) {
+    // stash the current function in a local variable first
+    // this is because Lox has nested function declarations
+    const enclosingFunction: FunctionType = this.currentFunction;
+    this.currentFunction = type;
     this.beginScope();
     for (const param of func.params) {
       this.declare(param);
@@ -148,6 +163,8 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
     this.resolve(func.body);
     this.endScope();
+    // once we're done resolving the function, return current function back to enclosed function
+    this.currentFunction = enclosingFunction;
   }
 
   private resolveStatement(stmt: Stmt) {

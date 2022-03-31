@@ -74,13 +74,18 @@ const run = (src: string): void => {
 
   // stop if there was a syntax error
   if (getHadError()) {
-    console.log("had error");
+    console.log("had syntax error");
     process.exit(65);
   }
 
   // run the semantic analysis pass before interpreting
   const resolver = new Resolver(interpreter);
   resolver.resolve(statements!);
+
+  if (getHadError()) {
+    console.log("had semantic analysis error");
+    process.exit(65);
+  }
   interpreter.interpret(statements);
 
   // stop if runtime error
