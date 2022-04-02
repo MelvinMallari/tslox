@@ -19,6 +19,7 @@ import {
   CallExpr,
   FunctionStmt,
   ReturnStmt,
+  ClassStmt,
 } from "./ast";
 import { runtimeError } from "./lox";
 import {
@@ -28,6 +29,7 @@ import {
   LoxFunction,
   LoxFunctionReturn,
   LoxObject,
+  LoxClass,
 } from "./types";
 import TokenType from "./tokenType";
 import Token from "./token";
@@ -233,6 +235,14 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     if (stmt.value !== null) value = this.evaluate(stmt.value);
 
     throw new LoxFunctionReturn(value);
+  }
+
+  visitClassStmt(stmt: ClassStmt): void {
+    this.environment.define(stmt.name.lexeme, null);
+    // turn the class syntax node into a LoxClass, the runtime representation of a class
+    // two stage variable binding process allows references to the class inside its own methods
+    const klass = new LoxClass(stmt.name.lexeme);
+    this.environment.assign(stmt.name, klass);
   }
 
   executeBlock(statements: Stmt[], environment: Environment): void {

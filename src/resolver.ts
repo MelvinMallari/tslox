@@ -3,6 +3,7 @@ import {
   BinaryExpr,
   BlockStmt,
   CallExpr,
+  ClassStmt,
   ExpressionStmt,
   ExprVisitor,
   FunctionStmt,
@@ -108,6 +109,11 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   visitWhileStmt(stmt: WhileStmt): void {
     this.resolveExpression(stmt.condition);
     this.resolveStatement(stmt.body);
+  }
+
+  visitClassStmt(stmt: ClassStmt): void {
+    this.declare(stmt.name);
+    this.define(stmt.name);
   }
 
   visitBinaryExpr(expr: BinaryExpr): void {

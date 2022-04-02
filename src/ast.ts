@@ -29,6 +29,7 @@ export interface StmtVisitor<T> {
   visitWhileStmt(stmt: WhileStmt): T;
   visitFunctionStmt(stmt: FunctionStmt): T;
   visitReturnStmt(stmt: ReturnStmt): T;
+  visitClassStmt(stmt: ClassStmt): T;
 }
 
 export class BinaryExpr implements Expr {
@@ -250,6 +251,22 @@ export class ReturnStmt implements Stmt {
 
   accept<T>(visitor: StmtVisitor<T>): T {
     return visitor.visitReturnStmt(this);
+  }
+}
+
+export class ClassStmt implements Stmt {
+  readonly name: Token;
+  // readonly superclass: VariableExpr;
+  readonly methods: FunctionStmt[];
+
+  constructor(name: Token, methods: FunctionStmt[]) {
+    this.name = name;
+    // this.superclass = superclass;
+    this.methods = methods;
+  }
+
+  accept<T>(visitor: StmtVisitor<T>): T {
+    return visitor.visitClassStmt(this);
   }
 }
 

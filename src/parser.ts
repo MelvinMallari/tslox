@@ -19,6 +19,7 @@ import {
   CallExpr,
   FunctionStmt,
   ReturnStmt,
+  ClassStmt,
 } from "./ast";
 import { ParseError } from "./error";
 import { error as loxError } from "./lox";
@@ -41,6 +42,7 @@ export class Parser {
 
   private declaration(): Stmt | null {
     try {
+      if (this.match(TokenType.CLASS)) return this.classDeclaration();
       if (this.match(TokenType.FUN)) return this.function("function");
       if (this.match(TokenType.VAR)) return this.varDeclaration();
       return this.statement();
@@ -296,6 +298,22 @@ export class Parser {
     const value = this.expression();
     this.consume(TokenType.SEMICOLON, "Expect ';' after value.");
     return new PrintStmt(value);
+  }
+
+  private classDeclaration(): Stmt {
+    // we've already consumed the class keyword, so what's next should be the class name
+    const name = this.consume(TokenType.IDENTIFIER, "Expect class name.");
+    this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+
+    // keep parsing the method declarations until we get closing brace
+    const methods: FunctionStmt[] = [];
+    // check if we're at the end to prevent inf loop (if not closed)
+    while (!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      methods.push(this.function("method"));
+    }
+
+    this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+    return new ClassStmt(name, methods);
   }
 
   private returnStatement(): Stmt {

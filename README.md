@@ -7,9 +7,12 @@ a typescript implementation of the lox programming language as outlined in _craf
 ```
 program        → declaration* EOF ;
 
-declaration    → funDecl
+declaration    → classDecl
+               | funDecl
                | varDecl
                | statement ;
+
+classDecl      → "class" IDENTIFIER "{" function* "}" ;
 
 funDecl        → "fun" function ;
 
@@ -116,4 +119,10 @@ protein → "really"+ "crispy" "bacon"
 | ( "scrambled" | "poached" | "fried" ) "eggs" ;
 
 bread → "toast" | "biscuits" | "English muffin" ;
+```
+
+### useful commands
+
+```
+node dist/lox.js src/program.txt
 ```
