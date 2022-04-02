@@ -80,7 +80,19 @@ export class LoxFunctionReturn extends Error {
   }
 }
 
-export class LoxClass {
+export class LoxInstance {
+  private klass: LoxClass;
+
+  constructor(klass: LoxClass) {
+    this.klass = klass;
+  }
+
+  toString(): string {
+    return `${this.klass.name} instance`;
+  }
+}
+
+export class LoxClass implements LoxCallable {
   readonly name: string;
 
   constructor(name: string) {
@@ -89,5 +101,16 @@ export class LoxClass {
 
   toString(): string {
     return this.name;
+  }
+
+  call(interpreter: Interpreter, args: LoxObject[]): LoxObject {
+    // when you call a class, it instantiates a new LoxInstance and returns it
+    const instance = new LoxInstance(this);
+    return instance;
+  }
+
+  // number of required params
+  arity(): Number {
+    return 0;
   }
 }
