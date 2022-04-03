@@ -7,6 +7,7 @@ import {
   ExpressionStmt,
   ExprVisitor,
   FunctionStmt,
+  GetExpr,
   GroupingExpr,
   IfStmt,
   LiteralExpr,
@@ -141,6 +142,10 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 
   visitUnaryExpr(expr: UnaryExpr): void {
     this.resolveExpression(expr.right);
+  }
+
+  visitGetExpr(expr: GetExpr): void {
+    this.resolveExpression(expr.object);
   }
 
   resolve(statements: Stmt[]): void {

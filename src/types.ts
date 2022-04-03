@@ -1,6 +1,8 @@
 import { FunctionStmt } from "./ast";
 import Environment from "./environment";
+import { RuntimeError } from "./error";
 import { Interpreter } from "./interpreter";
+import Token from "./token";
 
 export interface LoxCallable {
   arity(): Number;
@@ -82,9 +84,21 @@ export class LoxFunctionReturn extends Error {
 
 export class LoxInstance {
   private klass: LoxClass;
+  private readonly fields: Map<string, LoxObject> = new Map();
 
   constructor(klass: LoxClass) {
     this.klass = klass;
+  }
+
+  get(name: Token): LoxObject {
+    if (this.fields.has(name.lexeme)) {
+      // we use a map to determine the property's value
+      const property = this.fields.get(name.lexeme);
+      if (property) return property;
+    }
+
+    // if there is no property, we intetionally error, instead of silent return
+    throw new RuntimeError(name, `Undefined property '${name.lexeme}.`);
   }
 
   toString(): string {

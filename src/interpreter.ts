@@ -20,6 +20,7 @@ import {
   FunctionStmt,
   ReturnStmt,
   ClassStmt,
+  GetExpr,
 } from "./ast";
 import { runtimeError } from "./lox";
 import {
@@ -30,10 +31,11 @@ import {
   LoxFunctionReturn,
   LoxObject,
   LoxClass,
+  LoxInstance,
 } from "./types";
 import TokenType from "./tokenType";
 import Token from "./token";
-import { RuntimeError } from "./error";
+import { error, RuntimeError } from "./error";
 import Environment from "./environment";
 
 // Object is the implementation language type we use to hold Lox values
@@ -180,6 +182,16 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     }
 
     return func.call(this, args);
+  }
+
+  visitGetExpr(expr: GetExpr): LoxObject {
+    const object = this.evaluate(expr.object);
+    // only class instances have properties
+    if (object instanceof LoxInstance) {
+      return object.get(expr.name);
+    }
+
+    throw new RuntimeError(expr.name, "Only instances have properties.");
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {
