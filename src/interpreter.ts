@@ -21,6 +21,7 @@ import {
   ReturnStmt,
   ClassStmt,
   GetExpr,
+  SetExpr,
 } from "./ast";
 import { runtimeError } from "./lox";
 import {
@@ -192,6 +193,18 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     }
 
     throw new RuntimeError(expr.name, "Only instances have properties.");
+  }
+
+  visitSetExpr(expr: SetExpr): LoxObject {
+    const object = this.evaluate(expr.object);
+
+    if (!(object instanceof LoxInstance)) {
+      throw new RuntimeError(expr.name, "Only instances have fields.");
+    }
+
+    const value = this.evaluate(expr.value);
+    object.set(expr.name, value);
+    return value;
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {

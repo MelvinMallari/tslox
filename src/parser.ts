@@ -20,6 +20,8 @@ import {
   FunctionStmt,
   ReturnStmt,
   ClassStmt,
+  GetExpr,
+  SetExpr,
 } from "./ast";
 import { ParseError } from "./error";
 import { error as loxError } from "./lox";
@@ -72,6 +74,11 @@ export class Parser {
       if (expr instanceof VariableExpr) {
         const name = expr.name;
         return new AssignExpr(name, value);
+      } else if (expr instanceof GetExpr) {
+        // if we run into an equal sign, we realize that what looks
+        // like a the method call is actually a set expr
+        const get = expr;
+        return new SetExpr(get.object, get.name, value);
       }
 
       // can only assign to variables
