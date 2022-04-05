@@ -84,6 +84,7 @@ export class LoxFunctionReturn extends Error {
 
 export class LoxInstance {
   private klass: LoxClass;
+  // note: instances store state, classes store behavior
   private readonly fields: Map<string, LoxObject> = new Map();
 
   constructor(klass: LoxClass) {
@@ -96,6 +97,12 @@ export class LoxInstance {
       const property = this.fields.get(name.lexeme);
       if (property) return property;
     }
+
+    // if there is no matching field, we look for a matching method
+    // this is where the distinction between _field_ and _property_ becomes meaningful
+    // all fields are properties, when accessing a property, you might get a field
+    const method = this.klass.findMethod(name.lexeme);
+    if (method) return method;
 
     // if there is no property, we intetionally error, instead of silent return
     throw new RuntimeError(name, `Undefined property '${name.lexeme}.`);
@@ -113,9 +120,12 @@ export class LoxInstance {
 
 export class LoxClass implements LoxCallable {
   readonly name: string;
+  // note: instances store state, classes store behavior
+  private readonly methods: Map<string, LoxFunction>;
 
-  constructor(name: string) {
+  constructor(name: string, methods: Map<string, LoxFunction>) {
     this.name = name;
+    this.methods = methods;
   }
 
   toString(): string {
@@ -126,6 +136,10 @@ export class LoxClass implements LoxCallable {
     // when you call a class, it instantiates a new LoxInstance and returns it
     const instance = new LoxInstance(this);
     return instance;
+  }
+
+  findMethod(name: string): LoxFunction {
+    return this.methods.get(name)!;
   }
 
   // number of required params

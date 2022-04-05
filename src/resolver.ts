@@ -29,6 +29,7 @@ import Token from "./token";
 enum FunctionType {
   NONE,
   FUNCTION,
+  METHOD,
 }
 
 // the resolver is semantically analyzes the code.
@@ -116,6 +117,11 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   visitClassStmt(stmt: ClassStmt): void {
     this.declare(stmt.name);
     this.define(stmt.name);
+
+    for (let method of stmt.methods) {
+      const declaration = FunctionType.METHOD;
+      this.resolveFunction(method, declaration);
+    }
   }
 
   visitBinaryExpr(expr: BinaryExpr): void {

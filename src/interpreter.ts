@@ -264,9 +264,17 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
   visitClassStmt(stmt: ClassStmt): void {
     this.environment.define(stmt.name.lexeme, null);
+
+    const methods: Map<string, LoxFunction> = new Map();
+
+    for (const method of stmt.methods) {
+      // method declaration become LoxFunction objects
+      const func = new LoxFunction(method, this.environment);
+      methods.set(method.name.lexeme, func);
+    }
     // turn the class syntax node into a LoxClass, the runtime representation of a class
     // two stage variable binding process allows references to the class inside its own methods
-    const klass = new LoxClass(stmt.name.lexeme);
+    const klass = new LoxClass(stmt.name.lexeme, methods);
     this.environment.assign(stmt.name, klass);
   }
 
