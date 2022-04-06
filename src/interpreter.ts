@@ -22,6 +22,7 @@ import {
   ClassStmt,
   GetExpr,
   SetExpr,
+  ThisExpr,
 } from "./ast";
 import { runtimeError } from "./lox";
 import {
@@ -205,6 +206,11 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     const value = this.evaluate(expr.value);
     object.set(expr.name, value);
     return value;
+  }
+
+  visitThisExpr(expr: ThisExpr): LoxObject {
+    // remember the expr is passed to look up how many hops to refer to the correct enclosed value
+    return this.lookUpVariable(expr.keyword, expr);
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {

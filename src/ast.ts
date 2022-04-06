@@ -16,6 +16,7 @@ export interface ExprVisitor<T> {
   visitCallExpr(expr: CallExpr): T;
   visitGetExpr(expr: GetExpr): T;
   visitSetExpr(expr: SetExpr): T;
+  visitThisExpr(expr: ThisExpr): T;
 }
 
 export interface Stmt {
@@ -174,9 +175,22 @@ export class SetExpr implements Expr {
   }
 
   accept<T>(visitor: ExprVisitor<T>): T {
-    return visitor.visitGetExpr(this);
+    return visitor.visitSetExpr(this);
   }
 }
+
+export class ThisExpr implements Expr {
+  readonly keyword: Token;
+
+  constructor(keyword: Token) {
+    this.keyword = keyword;
+  }
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitThisExpr(this);
+  }
+}
+
 // ### Statements ###
 
 export class ExpressionStmt implements Stmt {

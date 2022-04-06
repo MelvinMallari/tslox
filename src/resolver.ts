@@ -16,6 +16,7 @@ import {
   ReturnStmt,
   SetExpr,
   StmtVisitor,
+  ThisExpr,
   UnaryExpr,
   VariableExpr,
   VarStmt,
@@ -77,6 +78,10 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.resolveLocal(expr, expr.name);
   }
 
+  visitThisExpr(expr: ThisExpr): void {
+    this.resolveLocal(expr, expr.keyword);
+  }
+
   visitFunctionStmt(stmt: FunctionStmt): void {
     this.declare(stmt.name);
     // unlike variables, define eagerly so that the function may refer to itself recursively
@@ -118,10 +123,16 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     this.declare(stmt.name);
     this.define(stmt.name);
 
+    // this sits in the scope between the class and the methods
+    this.beginScope();
+    this.scopes[this.scopes.length - 1].set("this", true);
+
     for (let method of stmt.methods) {
       const declaration = FunctionType.METHOD;
       this.resolveFunction(method, declaration);
     }
+
+    this.endScope();
   }
 
   visitBinaryExpr(expr: BinaryExpr): void {

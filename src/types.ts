@@ -64,6 +64,14 @@ export class LoxFunction implements LoxCallable {
     return null;
   }
 
+  bind(instance: LoxInstance): LoxFunction {
+    // create a new environment, nestled inside the method's original closure
+    const environment = new Environment(this.closure);
+    // declare 'this' as an environment in this nestled enclosure and bind it to the given instance
+    environment.define("this", instance);
+    return new LoxFunction(this.declaration, environment);
+  }
+
   arity(): Number {
     return this.declaration.params.length;
   }
@@ -92,20 +100,17 @@ export class LoxInstance {
   }
 
   get(name: Token): LoxObject {
-    if (this.fields.has(name.lexeme)) {
-      // we use a map to determine the property's value
-      const property = this.fields.get(name.lexeme);
-      if (property) return property;
-    }
+    // we use a map to determine the property's value
+    if (this.fields.has(name.lexeme)) return this.fields.get(name.lexeme)!;
 
     // if there is no matching field, we look for a matching method
     // this is where the distinction between _field_ and _property_ becomes meaningful
     // all fields are properties, when accessing a property, you might get a field
     const method = this.klass.findMethod(name.lexeme);
-    if (method) return method;
+    if (method) return method.bind(this);
 
     // if there is no property, we intetionally error, instead of silent return
-    throw new RuntimeError(name, `Undefined property '${name.lexeme}.`);
+    throw new RuntimeError(name, `Undefined property '${name.lexeme}'.`);
   }
 
   set(name: Token, value: LoxObject) {
