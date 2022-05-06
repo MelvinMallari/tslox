@@ -33,10 +33,16 @@ export class LoxClockFunction implements LoxCallable {
 export class LoxFunction implements LoxCallable {
   private readonly declaration;
   private readonly closure;
+  private readonly isInitializer: boolean;
 
-  constructor(declaration: FunctionStmt, closure: Environment) {
+  constructor(
+    declaration: FunctionStmt,
+    closure: Environment,
+    isInitializer: boolean
+  ) {
     this.declaration = declaration;
     this.closure = closure;
+    this.isInitializer = isInitializer;
   }
 
   // invokes the function!
@@ -58,9 +64,11 @@ export class LoxFunction implements LoxCallable {
       interpreter.executeBlock(this.declaration.body, environment);
     } catch (error) {
       const returnValue = error as LoxFunctionReturn;
+      if (this.isInitializer) return this.closure.getAt(0, "this");
       return returnValue.value;
     }
 
+    if (this.isInitializer) return this.closure.getAt(0, "this");
     return null;
   }
 
@@ -69,7 +77,7 @@ export class LoxFunction implements LoxCallable {
     const environment = new Environment(this.closure);
     // declare 'this' as an environment in this nestled enclosure and bind it to the given instance
     environment.define("this", instance);
-    return new LoxFunction(this.declaration, environment);
+    return new LoxFunction(this.declaration, environment, this.isInitializer);
   }
 
   arity(): Number {

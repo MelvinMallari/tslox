@@ -255,7 +255,7 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   visitFunctionStmt(stmt: FunctionStmt): void {
     // pass the current environment into the LoxFunction to preserve closure
     // this is the environment that is active when the function is declared.
-    const func = new LoxFunction(stmt, this.environment);
+    const func = new LoxFunction(stmt, this.environment, false);
     // declaration also binds the resulting object to a new variable.
     // here we create a new binding in the current environment and store a reference here:
     this.environment.define(stmt.name.lexeme, func);
@@ -275,7 +275,11 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
     for (const method of stmt.methods) {
       // method declaration become LoxFunction objects
-      const func = new LoxFunction(method, this.environment);
+      const func = new LoxFunction(
+        method,
+        this.environment,
+        method.name.lexeme === "init"
+      );
       methods.set(method.name.lexeme, func);
     }
     // turn the class syntax node into a LoxClass, the runtime representation of a class
