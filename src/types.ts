@@ -140,6 +140,13 @@ export class LoxClass implements LoxCallable {
   call(interpreter: Interpreter, args: LoxObject[]): LoxObject {
     // when you call a class, it instantiates a new LoxInstance and returns it
     const instance = new LoxInstance(this);
+
+    const initializer = this.findMethod("init");
+    // if we have an initializer, we immediately bind & invoke it like a normal method call
+    if (initializer !== null) {
+      initializer.bind(instance).call(interpreter, args);
+    }
+
     return instance;
   }
 
@@ -149,6 +156,7 @@ export class LoxClass implements LoxCallable {
 
   // number of required params
   arity(): Number {
-    return 0;
+    const initializer = this.findMethod("init");
+    return initializer ? initializer.arity() : 0;
   }
 }
