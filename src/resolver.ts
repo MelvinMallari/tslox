@@ -33,6 +33,13 @@ enum FunctionType {
   METHOD,
 }
 
+enum ClassType {
+  NONE,
+  CLASS,
+}
+
+let currentClass = ClassType.NONE;
+
 // the resolver is semantically analyzes the code.
 // this means that it inspects the user's program, finds every variable mentioned
 // & figures out which declaration each refers to
@@ -79,6 +86,10 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitThisExpr(expr: ThisExpr): void {
+    if (currentClass === ClassType.NONE) {
+      error(expr.keyword, "can't use 'this' outside of a class.");
+      return;
+    }
     this.resolveLocal(expr, expr.keyword);
   }
 
@@ -120,6 +131,9 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitClassStmt(stmt: ClassStmt): void {
+    const enclosingClass = currentClass;
+    currentClass = ClassType.CLASS;
+
     this.declare(stmt.name);
     this.define(stmt.name);
 
@@ -133,6 +147,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
 
     this.endScope();
+    currentClass = enclosingClass;
   }
 
   visitBinaryExpr(expr: BinaryExpr): void {
