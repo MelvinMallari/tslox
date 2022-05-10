@@ -269,6 +269,19 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   }
 
   visitClassStmt(stmt: ClassStmt): void {
+    let superclass = null;
+    if (stmt.superclass !== null) {
+      // if a class has a superclass expression, evaluate it.
+      superclass = this.evaluate(stmt.superclass);
+      if (!(superclass instanceof LoxClass)) {
+        // super class must evaluates to be a class.
+        throw new RuntimeError(
+          stmt.superclass.name,
+          "Superclass must be a class."
+        );
+      }
+    }
+
     this.environment.define(stmt.name.lexeme, null);
 
     const methods: Map<string, LoxFunction> = new Map();
@@ -284,7 +297,11 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     }
     // turn the class syntax node into a LoxClass, the runtime representation of a class
     // two stage variable binding process allows references to the class inside its own methods
-    const klass = new LoxClass(stmt.name.lexeme, methods);
+    const klass = new LoxClass(
+      stmt.name.lexeme,
+      superclass as LoxClass,
+      methods
+    );
     this.environment.assign(stmt.name, klass);
   }
 

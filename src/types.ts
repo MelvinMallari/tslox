@@ -133,11 +133,17 @@ export class LoxInstance {
 
 export class LoxClass implements LoxCallable {
   readonly name: string;
+  readonly superclass: LoxClass;
   // note: instances store state, classes store behavior
   private readonly methods: Map<string, LoxFunction>;
 
-  constructor(name: string, methods: Map<string, LoxFunction>) {
+  constructor(
+    name: string,
+    superclass: LoxClass,
+    methods: Map<string, LoxFunction>
+  ) {
     this.name = name;
+    this.superclass = superclass;
     this.methods = methods;
   }
 

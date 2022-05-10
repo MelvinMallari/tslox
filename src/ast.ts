@@ -305,12 +305,14 @@ export class ReturnStmt implements Stmt {
 
 export class ClassStmt implements Stmt {
   readonly name: Token;
-  // readonly superclass: VariableExpr;
+  // this is a variable expr instead of token bc it
+  // allows us to evaluate the identifier at run time
+  readonly superclass: VariableExpr;
   readonly methods: FunctionStmt[];
 
-  constructor(name: Token, methods: FunctionStmt[]) {
+  constructor(name: Token, superclass: VariableExpr, methods: FunctionStmt[]) {
     this.name = name;
-    // this.superclass = superclass;
+    this.superclass = superclass;
     this.methods = methods;
   }
 
