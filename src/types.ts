@@ -157,14 +157,14 @@ export class LoxClass implements LoxCallable {
 
     const initializer = this.findMethod("init");
     // if we have an initializer, we immediately bind & invoke it like a normal method call
-    if (initializer !== null) {
-      initializer.bind(instance).call(interpreter, args);
-    }
+    if (initializer) initializer.bind(instance).call(interpreter, args);
 
     return instance;
   }
 
   findMethod(name: string): LoxFunction {
+    if (name in this.methods) return this.methods.get(name)!;
+    if (this.superclass !== null) return this.superclass.findMethod(name);
     return this.methods.get(name)!;
   }
 
