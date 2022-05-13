@@ -23,6 +23,7 @@ import {
   GetExpr,
   SetExpr,
   ThisExpr,
+  SuperExpr,
 } from "./ast";
 import { ParseError } from "./error";
 import { error as loxError } from "./lox";
@@ -228,6 +229,16 @@ export class Parser {
 
     if (this.match(TokenType.NUMBER, TokenType.STRING))
       return new LiteralExpr(this.previous().literal);
+
+    if (this.match(TokenType.SUPER)) {
+      const keyword = this.previous();
+      this.consume(TokenType.DOT, "Expect '.' after 'super'.");
+      const method = this.consume(
+        TokenType.IDENTIFIER,
+        "Expect superclass method name"
+      );
+      return new SuperExpr(keyword, method);
+    }
 
     if (this.match(TokenType.THIS)) return new ThisExpr(this.previous());
 

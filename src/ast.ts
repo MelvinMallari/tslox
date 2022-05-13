@@ -17,6 +17,7 @@ export interface ExprVisitor<T> {
   visitGetExpr(expr: GetExpr): T;
   visitSetExpr(expr: SetExpr): T;
   visitThisExpr(expr: ThisExpr): T;
+  visitSuperExpr(expr: SuperExpr): T;
 }
 
 export interface Stmt {
@@ -188,6 +189,20 @@ export class ThisExpr implements Expr {
 
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitThisExpr(this);
+  }
+}
+
+export class SuperExpr implements Expr {
+  readonly keyword: Token;
+  readonly method: Token;
+
+  constructor(keyword: Token, method: Token) {
+    this.keyword = keyword;
+    this.method = method;
+  }
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitSuperExpr(this);
   }
 }
 
