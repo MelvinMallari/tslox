@@ -4,7 +4,7 @@ import { RuntimeError } from "./error";
 
 export default class Environment {
   private values: Record<string, LoxObject> = {};
-  private enclosing: Environment | null;
+  enclosing: Environment | null;
 
   constructor(enclosing?: Environment) {
     // enclosing like the concept of _closure_

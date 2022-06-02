@@ -23,6 +23,7 @@ import {
   GetExpr,
   SetExpr,
   ThisExpr,
+  SuperExpr,
 } from "./ast";
 import { runtimeError } from "./lox";
 import {
@@ -270,7 +271,7 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
   visitClassStmt(stmt: ClassStmt): void {
     let superclass = null;
-    if (stmt.superclass !== null) {
+    if (stmt.superclass) {
       // if a class has a superclass expression, evaluate it.
       superclass = this.evaluate(stmt.superclass);
       if (!(superclass instanceof LoxClass)) {
@@ -284,13 +285,20 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
 
     this.environment.define(stmt.name.lexeme, null);
 
+    let environment = this.environment;
+    if (stmt.superclass !== null) {
+      // when we evaluate a subclass definition, we creat a new environment
+      environment = new Environment(this.environment);
+      environment.define("super", superclass);
+    }
+
     const methods: Map<string, LoxFunction> = new Map();
 
     for (const method of stmt.methods) {
       // method declaration become LoxFunction objects
       const func = new LoxFunction(
         method,
-        this.environment,
+        environment,
         method.name.lexeme === "init"
       );
       methods.set(method.name.lexeme, func);
@@ -302,7 +310,37 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
       superclass as LoxClass,
       methods
     );
-    this.environment.assign(stmt.name, klass);
+
+    if (superclass && environment.enclosing) {
+      environment = environment.enclosing!;
+    }
+
+    environment.assign(stmt.name, klass);
+  }
+
+  visitSuperExpr(expr: SuperExpr): LoxObject {
+    const distance = this.locals.get(expr);
+    if (!distance)
+      throw new RuntimeError(expr.keyword, "Super expression not found");
+
+    const superclass = this.environment.getAt(distance, "super");
+    // we have to find the object that the superclass method is bound too.
+    if (!(superclass instanceof LoxClass))
+      throw new RuntimeError(expr.keyword, "Invalid super usage");
+
+    const object = this.environment.getAt(distance - 1, "this");
+    if (!(object instanceof LoxInstance))
+      throw new RuntimeError(expr.keyword, "Invalid super usage");
+
+    // find the method on the super class.
+    const method = superclass.findMethod(expr.method.lexeme);
+    if (!method) {
+      throw new RuntimeError(
+        expr.method,
+        `Undefined property '${expr.method.lexeme}'`
+      );
+    }
+    return method.bind(object);
   }
 
   executeBlock(statements: Stmt[], environment: Environment): void {

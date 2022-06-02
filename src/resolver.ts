@@ -16,6 +16,7 @@ import {
   ReturnStmt,
   SetExpr,
   StmtVisitor,
+  SuperExpr,
   ThisExpr,
   UnaryExpr,
   VariableExpr,
@@ -152,6 +153,11 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
       this.resolveExpression(stmt.superclass);
     }
 
+    if (stmt.superclass !== null) {
+      this.beginScope();
+      this.scopes[this.scopes.length - 1].set("super", true);
+    }
+
     // this sits in the scope between the class and the methods
     this.beginScope();
     this.scopes[this.scopes.length - 1].set("this", true);
@@ -163,6 +169,9 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
 
     this.endScope();
+
+    if (stmt.superclass !== null) this.endScope();
+
     currentClass = enclosingClass;
   }
 
@@ -200,6 +209,15 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   visitSetExpr(expr: SetExpr): void {
     this.resolveExpression(expr.value);
     this.resolveExpression(expr.object);
+  }
+
+  visitSuperExpr(expr: SuperExpr): void {
+    /**
+     * resolve super like a variable.
+     * resolution stores the number of hops along the environment chain
+     * that the interpreter needs to walk to find where the super class is stored
+     */
+    this.resolveLocal(expr, expr.keyword);
   }
 
   resolve(statements: Stmt[]): void {

@@ -164,7 +164,7 @@ export class LoxClass implements LoxCallable {
 
   findMethod(name: string): LoxFunction {
     if (name in this.methods) return this.methods.get(name)!;
-    if (this.superclass !== null) return this.superclass.findMethod(name);
+    if (this.superclass) return this.superclass.findMethod(name);
     return this.methods.get(name)!;
   }
 
