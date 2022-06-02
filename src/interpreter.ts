@@ -286,7 +286,7 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     this.environment.define(stmt.name.lexeme, null);
 
     let environment = this.environment;
-    if (stmt.superclass !== null) {
+    if (stmt.superclass) {
       // when we evaluate a subclass definition, we creat a new environment
       environment = new Environment(this.environment);
       environment.define("super", superclass);
@@ -311,7 +311,7 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
       methods
     );
 
-    if (superclass && environment.enclosing) {
+    if (superclass) {
       environment = environment.enclosing!;
     }
 
