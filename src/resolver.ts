@@ -38,9 +38,8 @@ enum FunctionType {
 enum ClassType {
   NONE,
   CLASS,
+  SUBCLASS,
 }
-
-let currentClass = ClassType.NONE;
 
 // the resolver is semantically analyzes the code.
 // this means that it inspects the user's program, finds every variable mentioned
@@ -50,6 +49,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   private readonly interpreter: Interpreter;
   private readonly scopes: Map<string, boolean>[] = [];
   private currentFunction: FunctionType = FunctionType.NONE;
+  private currentClass = ClassType.NONE;
 
   constructor(interpreter: Interpreter) {
     this.interpreter = interpreter;
@@ -88,7 +88,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitThisExpr(expr: ThisExpr): void {
-    if (currentClass === ClassType.NONE) {
+    if (this.currentClass === ClassType.NONE) {
       error(expr.keyword, "can't use 'this' outside of a class.");
       return;
     }
@@ -136,8 +136,8 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitClassStmt(stmt: ClassStmt): void {
-    const enclosingClass = currentClass;
-    currentClass = ClassType.CLASS;
+    const enclosingClass = this.currentClass;
+    this.currentClass = ClassType.CLASS;
 
     this.declare(stmt.name);
     this.define(stmt.name);
@@ -150,6 +150,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
     }
 
     if (stmt.superclass) {
+      this.currentClass = ClassType.SUBCLASS;
       this.resolveExpression(stmt.superclass);
     }
 
@@ -172,7 +173,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
 
     if (stmt.superclass !== null) this.endScope();
 
-    currentClass = enclosingClass;
+    this.currentClass = enclosingClass;
   }
 
   visitBinaryExpr(expr: BinaryExpr): void {
@@ -212,6 +213,14 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   }
 
   visitSuperExpr(expr: SuperExpr): void {
+    if (this.currentClass === ClassType.NONE) {
+      error(expr.keyword, "Can't use 'super' outside of a class.");
+    } else if (this.currentClass !== ClassType.SUBCLASS) {
+      error(
+        expr.keyword,
+        "Can't use 'super' keyword in a class with no superclass."
+      );
+    }
     /**
      * resolve super like a variable.
      * resolution stores the number of hops along the environment chain

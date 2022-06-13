@@ -38,7 +38,7 @@ import {
 } from "./types";
 import TokenType from "./tokenType";
 import Token from "./token";
-import { error, RuntimeError } from "./error";
+import { RuntimeError } from "./error";
 import Environment from "./environment";
 
 // Object is the implementation language type we use to hold Lox values

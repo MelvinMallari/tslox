@@ -5,8 +5,8 @@ let hadRunTimeError = false;
 
 export class ParseError extends Error {
   name = "ParseError";
-  private line?: number;
-  private where?: string;
+  line?: number;
+  where?: string;
 
   constructor(message: string, line?: number, where?: string) {
     super(message);
