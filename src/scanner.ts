@@ -102,6 +102,9 @@ export default class Scanner {
           // use peek instead of match so we update line counter in the new line case
           // no need to add a token, we just skip through comments
           while (this.peek() !== "\n" && !this.isAtEnd()) this.advance();
+        } else if (this.match("*")) {
+          console.log("block comment");
+          this.blockComment();
         } else {
           this.addToken(TokenType.SLASH);
         }
@@ -204,6 +207,25 @@ export default class Scanner {
     let reservedKeyword = this.keywords.get(text);
     //
     this.addToken(reservedKeyword || TokenType.IDENTIFIER);
+  }
+
+  private blockComment(): void {
+    while (
+      !(this.peek() === "*" && this.peekNext() === "/") &&
+      !this.isAtEnd()
+    ) {
+      if (this.peek() == "\n") this.line++;
+      this.advance();
+    }
+
+    if (this.isAtEnd()) {
+      error(this.line, "Unterminated comment.");
+      return;
+    }
+
+    // advance past the closing */
+    this.advance();
+    this.advance();
   }
 
   private isAlpha(c: string): boolean {

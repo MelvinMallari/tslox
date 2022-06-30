@@ -125,5 +125,5 @@ bread → "toast" | "biscuits" | "English muffin" ;
 ### useful commands
 
 ```
-node dist/lox.js src/program.txt
+tsc; node dist/lox.js src/program.txt
 ```
