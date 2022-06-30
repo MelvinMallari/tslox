@@ -68,6 +68,7 @@ const runPrompt = (): void => {
 const run = (src: string): void => {
   const scanner = new Scanner(src);
   const tokens = scanner.scanTokens();
+  console.log({ tokens });
   const parser = new Parser(tokens);
   const statements = parser.parse();
   const interpreter = new Interpreter();

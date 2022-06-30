@@ -98,7 +98,9 @@ export default class Scanner {
         break;
       case "/":
         if (this.match("/")) {
+          // a comment goes until the end of the line
           // use peek instead of match so we update line counter in the new line case
+          // no need to add a token, we just skip through comments
           while (this.peek() !== "\n" && !this.isAtEnd()) this.advance();
         } else {
           this.addToken(TokenType.SLASH);
@@ -131,10 +133,12 @@ export default class Scanner {
     }
   }
 
+  // consumes the next character & returns it
   private advance(): string {
     return this.source.charAt(this.current++);
   }
 
+  // lookahead, does not consume character
   private peek(): string {
     if (this.isAtEnd()) return "\0";
     return this.source.charAt(this.current);
@@ -145,6 +149,7 @@ export default class Scanner {
     return this.source.charAt(this.current + 1);
   }
 
+  // a conditional advance, only consume character if it's what we're looking for
   private match(expected: string): boolean {
     if (this.isAtEnd()) return false;
     if (this.source.charAt(this.current) !== expected) return false;
@@ -152,6 +157,7 @@ export default class Scanner {
     return true;
   }
 
+  // lox supports multi-line strings
   private string(): void {
     while (this.peek() != '"' && !this.isAtEnd()) {
       if (this.peek() == "\n") this.line++;
@@ -182,6 +188,7 @@ export default class Scanner {
       while (this.isDigit(this.peek())) this.advance();
     }
 
+    // parse the lexeme into a float
     this.addTokenWithLiteral(
       TokenType.NUMBER,
       parseFloat(this.source.substring(this.start, this.current))
@@ -190,11 +197,13 @@ export default class Scanner {
 
   private identifier(): void {
     while (this.isAlphaNumeric(this.peek())) this.advance();
-    // check if the type is a reserved keyword (essentially an identifier claimed by the language)
+    // follow the maximal much principle— when two lexical grammars
+    // can both match a chunk of code, whichever matchers the most chracter wins.
+    // check if the identifier is a reserved keyword
     const text = this.source.substring(this.start, this.current);
-    let type = this.keywords.get(text);
-    if (type == null) type = TokenType.IDENTIFIER;
-    this.addToken(type);
+    let reservedKeyword = this.keywords.get(text);
+    //
+    this.addToken(reservedKeyword || TokenType.IDENTIFIER);
   }
 
   private isAlpha(c: string): boolean {
