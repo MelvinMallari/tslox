@@ -24,6 +24,7 @@ import {
   SetExpr,
   ThisExpr,
   SuperExpr,
+  TernaryExpr,
 } from "./ast";
 import { ParseError } from "./error";
 import { error as loxError } from "./lox";
@@ -61,17 +62,17 @@ export class Parser {
     return this.assignment();
   }
 
-  // assignment → IDENTIFIER "=" assignment | logic_or ;
+  // assignment → IDENTIFIER "=" assignment | ternary;
   private assignment(): Expr {
-    // recursively parser left hand side to figure out what kind of assignment target it is
-    // this works because every valid targe also happens to be valid syntax as normal expression
-    let expr = this.or();
+    // recursively parses left hand side to figure out what kind of assignment target it is
+    // this works because every valid target also happens to be valid syntax as normal expression
+    let expr = this.ternary();
 
     if (this.match(TokenType.EQUAL)) {
       const equals = this.previous();
       // this parsers the right hand side of the assignment, recursively
       // this only needs a single token look ahead!
-      const value = this.assignment();
+      let value = this.assignment();
 
       if (expr instanceof VariableExpr) {
         const name = expr.name;
@@ -85,6 +86,20 @@ export class Parser {
 
       // can only assign to variables
       this.error(equals, "Invalid assignment target");
+    }
+
+    return expr;
+  }
+
+  // ternary → logic_or ("?" expression ":" expression )? ;
+  private ternary(): Expr {
+    let expr = this.or();
+
+    if (this.match(TokenType.QUESTION)) {
+      const ifArm = this.expression();
+      this.consume(TokenType.COLON, "Expect colon after '?' in ternary");
+      const elseArm = this.expression();
+      return new TernaryExpr(expr, ifArm, elseArm);
     }
 
     return expr;
@@ -170,7 +185,7 @@ export class Parser {
     return expr;
   }
 
-  // unary → ( "!" | "-" ) unary | primary ;
+  // unary  → ( "!" | "-" ) unary | call ;
   private unary(): Expr {
     if (this.match(TokenType.BANG, TokenType.MINUS)) {
       const operator = this.previous();
@@ -471,7 +486,8 @@ export class Parser {
   }
 
   private check(type: TokenType): boolean {
-    return this.isAtEnd() ? false : this.peek().type === type;
+    if (this.isAtEnd()) return false;
+    return this.peek().type === type;
   }
 
   private advance(): Token {

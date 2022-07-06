@@ -24,6 +24,7 @@ import {
   SetExpr,
   ThisExpr,
   SuperExpr,
+  TernaryExpr,
 } from "./ast";
 import { runtimeError } from "./lox";
 import {
@@ -132,6 +133,13 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
     }
 
     return null;
+  }
+
+  visitTernaryExpr(expr: TernaryExpr): LoxObject {
+    const condition = this.evaluate(expr.condition);
+    const thenArm = this.evaluate(expr.thenArm);
+    const elseArm = this.evaluate(expr.elseArm);
+    return Boolean(condition) ? thenArm : elseArm;
   }
 
   visitVariableExpr(expr: VariableExpr): LoxObject {

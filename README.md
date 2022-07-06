@@ -51,7 +51,9 @@ varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
 expression     → assignment ;
 
 assignment     → ( call "." )? IDENTIFIER "=" assignment
-               | logic_or ;
+               | ternary ;
+
+ternary        → logic_or ("?" expression ":" expression )?;
 
 logic_or       → logic_and ( "or" logic_and )* ;
 

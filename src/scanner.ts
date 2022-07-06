@@ -80,6 +80,12 @@ export default class Scanner {
       case "*":
         this.addToken(TokenType.STAR);
         break;
+      case "?":
+        this.addToken(TokenType.QUESTION);
+        break;
+      case ":":
+        this.addToken(TokenType.COLON);
+        break;
       case "!":
         this.addToken(this.match("=") ? TokenType.BANG_EQUAL : TokenType.BANG);
         break;
@@ -209,12 +215,12 @@ export default class Scanner {
   }
 
   private blockComment(): void {
-    let openingCommentToken = 1;
-    while (openingCommentToken > 0 && !this.isAtEnd()) {
+    let openingCommentTokens = 1;
+    while (openingCommentTokens > 0 && !this.isAtEnd()) {
       if (this.peek() == "\n") this.line++;
       this.advance();
-      if (this.match("/") && this.match("*")) openingCommentToken++;
-      if (this.match("*") && this.match("/")) openingCommentToken--;
+      if (this.match("/") && this.match("*")) openingCommentTokens++;
+      if (this.match("*") && this.match("/")) openingCommentTokens--;
     }
 
     if (this.isAtEnd()) {

@@ -7,6 +7,7 @@ export interface Expr {
 
 export interface ExprVisitor<T> {
   visitBinaryExpr(expr: BinaryExpr): T;
+  visitTernaryExpr(expr: TernaryExpr): T;
   visitGroupingExpr(expr: GroupingExpr): T;
   visitLiteralExpr(expr: LiteralExpr): T;
   visitUnaryExpr(expr: UnaryExpr): T;
@@ -37,6 +38,22 @@ export interface StmtVisitor<T> {
 }
 
 // ### Expressions ###
+
+export class TernaryExpr implements Expr {
+  readonly condition: Expr;
+  readonly thenArm: Expr;
+  readonly elseArm: Expr;
+
+  constructor(condition: Expr, thenArm: Expr, elseArm: Expr) {
+    this.condition = condition;
+    this.thenArm = thenArm;
+    this.elseArm = elseArm;
+  }
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitTernaryExpr(this);
+  }
+}
 
 export class BinaryExpr implements Expr {
   readonly left: Expr;
