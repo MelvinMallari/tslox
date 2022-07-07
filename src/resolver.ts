@@ -17,6 +17,7 @@ import {
   SetExpr,
   StmtVisitor,
   SuperExpr,
+  TernaryExpr,
   ThisExpr,
   UnaryExpr,
   VariableExpr,
@@ -179,6 +180,12 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
   visitBinaryExpr(expr: BinaryExpr): void {
     this.resolveExpression(expr.left);
     this.resolveExpression(expr.right);
+  }
+
+  visitTernaryExpr(expr: TernaryExpr): void {
+    this.resolveExpression(expr.condition);
+    this.resolveExpression(expr.thenArm);
+    this.resolveExpression(expr.elseArm);
   }
 
   visitCallExpr(expr: CallExpr): void {
