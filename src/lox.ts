@@ -6,7 +6,6 @@ import {
   getHadError,
   RuntimeError,
   setHadRuntimeError,
-  getHadRuntimeError,
 } from "./error";
 import * as readline from "readline";
 import Token from "./token";
@@ -86,11 +85,11 @@ const run = (src: string): void => {
     console.log("had semantic analysis error");
     process.exit(65);
   }
-  interpreter.interpret(statements);
 
-  // stop if runtime error
-  if (getHadRuntimeError()) {
-    console.log("had runtime error");
+  try {
+    interpreter.interpret(statements);
+  } catch (e) {
+    runtimeError(e as RuntimeError);
     process.exit(70);
   }
 };

@@ -116,12 +116,18 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
         if (typeof left === "string" && typeof right === "string") {
           return String(left) + String(right);
         }
+        if (typeof left === "string" || typeof right === "string") {
+          return String(left) + String(right);
+        }
         throw new RuntimeError(
           expr.operator,
           "Operands must be two numbers or two strings."
         );
       case TokenType.SLASH:
         this.checkNumberOperands(expr.operator, left, right);
+        if (Number(right) === 0) {
+          throw new RuntimeError(expr.operator, "Cannot divide by 0");
+        }
         return Number(left) / Number(right);
       case TokenType.STAR:
         this.checkNumberOperands(expr.operator, left, right);
