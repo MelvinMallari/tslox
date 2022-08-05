@@ -36,7 +36,9 @@ export default class Environment {
   get(name: Token): LoxObject {
     if (name.lexeme in this.values) return this.values[name.lexeme];
     // if the value isn't found in this environment, check the enclosing one
+    // recursively walk up scopes until we reach the global scope
     if (this.enclosing != null) return this.enclosing.get(name);
+    // if we get to global scope and can't find anything, the variable is undefined
     throw new RuntimeError(name, `Undefined variable '${name.lexeme}'`);
   }
 

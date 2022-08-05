@@ -54,6 +54,7 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   }
 
   interpret(statements: (Stmt | null)[]): void {
+    // execute a list of statements, aka a program
     try {
       for (const statement of statements) {
         this.execute(statement!);
@@ -163,6 +164,9 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
       // if distance is null, then we know it's a global
       this.globals.assign(expr.name, value);
     }
+
+    // assignment is an expression, e.g.
+    // print a = 2; // "2"
     return value;
   }
 

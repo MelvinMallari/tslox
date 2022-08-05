@@ -66,14 +66,17 @@ export class Parser {
   private assignment(): Expr {
     // recursively parses left hand side to figure out what kind of assignment target it is
     // this works because every valid target also happens to be valid syntax as normal expression
+    // aka parse the expression as a regular expression
     let expr = this.ternary();
 
+    // if we run into an equals sign
     if (this.match(TokenType.EQUAL)) {
+      // we we keep track of the equals sign here bc we lose it if we go straight to parsing
       const equals = this.previous();
-      // this parsers the right hand side of the assignment, recursively
-      // this only needs a single token look ahead!
+      // recursively parse the right hand side to evaluate the expression
       let value = this.assignment();
 
+      // if the left hand side is assignable, create an assignment ast node
       if (expr instanceof VariableExpr) {
         const name = expr.name;
         return new AssignExpr(name, value);
@@ -84,7 +87,8 @@ export class Parser {
         return new SetExpr(get.object, get.name, value);
       }
 
-      // can only assign to variables
+      // if we hit an equal sign and the left-hand side isn't
+      // a valid assignment target grammar, report an error
       this.error(equals, "Invalid assignment target");
     }
 
