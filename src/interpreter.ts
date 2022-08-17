@@ -46,6 +46,8 @@ import Environment from "./environment";
 export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   // we need a fixed reference to the global environment
   globals = new Environment();
+  // the environment field keeps track of the current environment
+  // as we enter and exit globals
   private environment = this.globals;
   private locals: Map<Expr, number> = new Map();
 
@@ -186,9 +188,12 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   }
 
   visitCallExpr(expr: CallExpr): LoxObject {
+    // callee is typically a identifier that looks up the function by its name, but could be anything
     const callee = this.evaluate(expr.callee);
     const args = expr.args.map((arg) => this.evaluate(arg));
 
+    // check to see that we can make function calls ith the callee
+    // eg we don't have something like "totally not a function"()
     if (!isInstanceOfLoxCallable(callee)) {
       throw new RuntimeError(expr.paren, "Can only call functions and classes");
     }
