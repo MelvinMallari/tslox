@@ -19,6 +19,7 @@ export interface ExprVisitor<T> {
   visitSetExpr(expr: SetExpr): T;
   visitThisExpr(expr: ThisExpr): T;
   visitSuperExpr(expr: SuperExpr): T;
+  visitLambdaExpr(expr: LambdaExpr): T;
 }
 
 export interface Stmt {
@@ -220,6 +221,20 @@ export class SuperExpr implements Expr {
 
   accept<T>(visitor: ExprVisitor<T>): T {
     return visitor.visitSuperExpr(this);
+  }
+}
+
+export class LambdaExpr implements Expr {
+  readonly params: Token[];
+  readonly body: Stmt[];
+
+  constructor(params: Token[], body: Stmt[]) {
+    this.params = params;
+    this.body = body;
+  }
+
+  accept<T>(visitor: ExprVisitor<T>): T {
+    return visitor.visitLambdaExpr(this);
   }
 }
 

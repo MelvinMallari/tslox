@@ -25,6 +25,7 @@ import {
   ThisExpr,
   SuperExpr,
   TernaryExpr,
+  LambdaExpr,
 } from "./ast";
 import { runtimeError } from "./lox";
 import {
@@ -32,6 +33,7 @@ import {
   LoxCallable,
   LoxClockFunction,
   LoxFunction,
+  LoxLambda,
   LoxFunctionReturn,
   LoxObject,
   LoxClass,
@@ -235,6 +237,12 @@ export class Interpreter implements ExprVisitor<LoxObject>, StmtVisitor<void> {
   visitThisExpr(expr: ThisExpr): LoxObject {
     // remember the expr is passed to look up how many hops to refer to the correct enclosed value
     return this.lookUpVariable(expr.keyword, expr);
+  }
+
+  visitLambdaExpr(expr: LambdaExpr): LoxObject {
+    // pass the current environment into the LoxFunction to preserve closure
+    // this is the environment that is active when the function is declared.
+    return new LoxLambda(expr, this.environment);
   }
 
   visitExpressionStmt(stmt: ExpressionStmt): void {

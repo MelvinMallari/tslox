@@ -25,6 +25,7 @@ import {
   ThisExpr,
   SuperExpr,
   TernaryExpr,
+  LambdaExpr,
 } from "./ast";
 import { ParseError } from "./error";
 import { error as loxError } from "./lox";
@@ -220,6 +221,34 @@ export class Parser {
     return expr;
   }
 
+  private lambda(): Expr {
+    this.consume(TokenType.FUN, "expected lambda function");
+    this.consume(TokenType.LEFT_PAREN, `Expect '(' after lambda invocation`);
+    const parameters = [];
+
+    if (!this.check(TokenType.RIGHT_PAREN)) {
+      do {
+        if (parameters.length >= 255) {
+          this.error(this.peek(), "can't have more than 255 parameters");
+        }
+
+        parameters.push(
+          this.consume(TokenType.IDENTIFIER, "Expect parameters name")
+        );
+      } while (this.match(TokenType.COMMA)); // checks if there are more parameters
+    }
+
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+
+    // parse the body and wrap in a function ast node.
+    this.consume(
+      TokenType.LEFT_BRACE,
+      `Expect '{' before lambda invocation body.`
+    );
+    const body = this.block();
+    return new LambdaExpr(parameters, body);
+  }
+
   private finishCall(callee: Expr): Expr {
     const args: Expr[] = [];
 
@@ -228,7 +257,11 @@ export class Parser {
       do {
         if (args.length >= 255)
           this.error(this.peek(), "Can't have more than 255 arguments.");
-        args.push(this.expression());
+        if (this.check(TokenType.FUN)) {
+          args.push(this.lambda());
+        } else {
+          args.push(this.expression());
+        }
       } while (this.match(TokenType.COMMA));
     }
 

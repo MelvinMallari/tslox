@@ -1,4 +1,4 @@
-import { FunctionStmt } from "./ast";
+import { FunctionStmt, LambdaExpr } from "./ast";
 import Environment from "./environment";
 import { RuntimeError } from "./error";
 import { Interpreter } from "./interpreter";
@@ -86,6 +86,53 @@ export class LoxFunction implements LoxCallable {
 
   toString(): string {
     return `<fn ${this.declaration.name.lexeme} >`;
+  }
+}
+
+export class LoxLambda implements LoxCallable {
+  private readonly declaration;
+  private readonly closure;
+
+  constructor(declaration: LambdaExpr, closure: Environment) {
+    this.declaration = declaration;
+    this.closure = closure;
+  }
+
+  // invokes the function!
+  call(interpreter: Interpreter, args: LoxObject[]): LoxObject {
+    // create a new environment for the function with the enclosing env
+    const environment = new Environment(this.closure);
+
+    /**
+     *  parameters are scoped to a function blocks environment
+     *  each function call must get its own environment
+     *  or else something like recursion breaks it
+     */
+    for (let i = 0; i < this.declaration.params.length; i++) {
+      environment.define(this.declaration.params[i].lexeme, args[i]);
+    }
+
+    try {
+      // executes the block and restores the previous environment
+      interpreter.executeBlock(this.declaration.body, environment);
+    } catch (error) {
+      const returnValue = error as LoxFunctionReturn;
+      return returnValue.value;
+    }
+
+    return null;
+  }
+
+  bind(instance: LoxInstance): LoxLambda {
+    // create a new environment, nestled inside the method's original closure
+    const environment = new Environment(this.closure);
+    // declare 'this' as an environment in this nestled enclosure and bind it to the given instance
+    environment.define("this", instance);
+    return new LoxLambda(this.declaration, environment);
+  }
+
+  arity(): Number {
+    return this.declaration.params.length;
   }
 }
 
