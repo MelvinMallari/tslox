@@ -10,6 +10,7 @@ import {
   GetExpr,
   GroupingExpr,
   IfStmt,
+  LambdaExpr,
   LiteralExpr,
   LogicalExpr,
   PrintStmt,
@@ -94,6 +95,16 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void> {
       return;
     }
     this.resolveLocal(expr, expr.keyword);
+  }
+
+  visitLambdaExpr(expr: LambdaExpr): void {
+    this.beginScope();
+    for (const param of expr.params) {
+      this.declare(param);
+      this.define(param);
+    }
+    this.resolve(expr.body);
+    this.endScope();
   }
 
   visitFunctionStmt(stmt: FunctionStmt): void {
