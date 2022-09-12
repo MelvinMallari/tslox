@@ -221,6 +221,7 @@ export class Parser {
     return expr;
   }
 
+  // lambda → "fun" "(" parameters? ")" block ;
   private lambda(): Expr {
     this.consume(TokenType.FUN, "expected lambda function");
     this.consume(TokenType.LEFT_PAREN, `Expect '(' after lambda invocation`);

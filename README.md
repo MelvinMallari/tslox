@@ -1,6 +1,14 @@
 # tslox
 
-a typescript implementation of the lox programming language as outlined in _crafting interpreters_ by Bob Nystrom.
+a typescript implementation of the lox programming language as outlined in _Crafting Interpreters_ by Bob Nystrom.
+
+I've added support for the following:
+
+- nested block comments
+- ternary operator
+- string conversion on addition
+- divide by 0 runtime error
+- anonymous/lambda function arguments
 
 ### grammar
 
